@@ -58,30 +58,30 @@ class DeezerService {
       'https://api.deezer.com/chart/113/tracks' // Top France
     ];
 
-    // Playlists par langue
+    // Playlists par langue (verifiees)
     this.languagePlaylists = {
       french: [
-        '1111141961',   // Top France
-        '1109890291',   // Chanson Francaise
-        '1313624735',   // Variete Francaise
-        '1111143121',   // Rap FR
-        '4403076402',   // French Hits
-        '1996494362'    // 100% Francais
+        '1884320402',   // Chansons Francaises de Legende
+        '700895155',    // Essentiels chanson francaise
+        '1420459465',   // Essentiels variete francaise
+        '1189520191',   // Bleu Blanc Hits
+        '957995855',    // Actu Chanson
+        '1626235655'    // Feel good chanson
       ],
       english: [
-        '1313621735',   // Top US
+        '1313621735',   // Top US/UK
         '1282495565',   // Pop Hits
         '1280927871',   // Rock Classics
-        '1313622775',   // Hip Hop Hits
-        '3155776842',   // UK Top 50
-        '1116189381'    // Top USA
+        '1116189381',   // Top USA
+        '915432285',    // 2010s Hits
+        '1677006641'    // All Time Hits
       ],
       spanish: [
         '4823961464',   // Latino Hits
         '1313623735',   // Reggaeton
-        '2701314554',   // Top Espana
-        '4403120062',   // Latin Pop
-        '1282495615'    // Spanish Hits
+        '1282495615',   // Spanish Hits
+        '3540195466',   // Latin Pop
+        '6046498464'    // Exitos Latinos
       ],
       mixed: [] // Utilisera les charts par defaut
     };
