@@ -102,6 +102,15 @@ class Game {
             <div class="timer ${timerClass}">${game.timeRemaining}s</div>
           </div>
 
+          <!-- Bandeau audio (caché par défaut) -->
+          <div id="audio-gate" class="audio-gate hidden">
+            <div>
+              <strong>🔇 Son bloqué</strong>
+              <div class="muted">Clique sur “Activer le son” pour entendre la musique.</div>
+            </div>
+            <button id="enable-audio" type="button" class="btn btn-secondary">🔊 Activer le son</button>
+          </div>
+
           <div class="vinyl-player">
             <div class="vinyl-disc ${isPlaying ? 'spinning' : ''}">
               <div class="vinyl-label">?</div>
@@ -237,6 +246,12 @@ class Game {
     }
   }
 
+  setAudioGateVisible(visible) {
+    const el = this.container.querySelector('#audio-gate');
+    if (!el) return;
+    el.classList.toggle('hidden', !visible);
+  }
+
   attachListeners() {
     const form = this.container.querySelector('#answer-form');
     const input = this.container.querySelector('#answer-input');
@@ -250,17 +265,42 @@ class Game {
       }
     });
 
+    // Bouton d'activation audio (important pour Safari / autoplay)
+    const enableBtn = this.container.querySelector('#enable-audio');
+    enableBtn?.addEventListener('click', async () => {
+      const ok = await audio.unlock();
+      if (ok) {
+        this.setAudioGateVisible(false);
+        // Relancer l'audio si une manche est en cours
+        const game = state.get('game');
+        if (game?.previewUrl) {
+          const played = await audio.play(game.previewUrl);
+          if (played === false) this.setAudioGateVisible(true);
+        }
+      } else {
+        this.setAudioGateVisible(true);
+      }
+    });
+
     // Focus sur l'input
     input?.focus();
   }
 
-  handleAudio(previewUrl) {
+  async handleAudio(previewUrl) {
     if (previewUrl && !audio.isAudioPlaying()) {
-      audio.play(previewUrl).catch(err => {
+      try {
+        const ok = await audio.play(previewUrl);
+
+        // Autoplay bloqué => afficher le bandeau
+        if (ok === false) this.setAudioGateVisible(true);
+        else this.setAudioGateVisible(false);
+      } catch (err) {
         console.error('Failed to play audio:', err);
-      });
+        this.setAudioGateVisible(true);
+      }
     } else if (!previewUrl && audio.isAudioPlaying()) {
-      audio.fadeOut();
+      await audio.fadeOut();
+      this.setAudioGateVisible(false);
     }
   }
 

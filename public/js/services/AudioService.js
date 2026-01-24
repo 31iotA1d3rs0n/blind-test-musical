@@ -8,13 +8,25 @@ class AudioService {
 
   play(url) {
     return new Promise((resolve, reject) => {
-      // Si c'est la meme URL et qu'on joue deja, ne rien faire
-      if (url === this.currentUrl && this.isPlaying && !this.audio.paused) {
-        resolve();
+      let settled = false;
+
+      const safeResolve = (v) => {
+        if (settled) return;
+        settled = true;
+        resolve(v);
+      };
+
+      const safeReject = (e) => {
+        if (settled) return;
+        settled = true;
+        reject(e);
+      };
+
+      if (url === this.currentUrl && this.isPlaying && this.audio && !this.audio.paused) {
+        safeResolve(true);
         return;
       }
 
-      // Arreter la lecture precedente seulement si URL differente
       if (url !== this.currentUrl) {
         this.stop();
       }
@@ -24,31 +36,67 @@ class AudioService {
       this.audio.volume = 0;
 
       this.audio.oncanplay = () => {
-        this.audio.play()
-          .then(() => {
+        const p = this.audio.play();
+
+        if (p && typeof p.then === "function") {
+          p.then(() => {
             this.isPlaying = true;
             this.fadeIn();
-            resolve();
-          })
-          .catch((error) => {
-            console.error('Audio play error:', error);
-            reject(error);
+            safeResolve(true);
+          }).catch((error) => {
+            console.error("Audio play error:", error);
+
+            if (
+              error?.name === "NotAllowedError" ||
+              /notallowed|user agent|denied permission/i.test(String(error?.message || ""))
+            ) {
+              this.isPlaying = false;
+              safeResolve(false);
+              return;
+            }
+
+            safeReject(error);
           });
+        } else {
+          this.isPlaying = true;
+          this.fadeIn();
+          safeResolve(true);
+        }
       };
 
       this.audio.onerror = (error) => {
-        console.error('Audio load error:', error);
-        reject(error);
+        console.error("Audio load error:", error);
+        safeReject(error);
       };
 
-      // Timeout si le chargement est trop long
       setTimeout(() => {
-        if (!this.isPlaying) {
-          reject(new Error('Audio load timeout'));
+        // Ne timeout QUE si on n'a encore rien résolu/rejeté
+        if (!settled && !this.isPlaying) {
+          safeReject(new Error("Audio load timeout"));
         }
       }, 10000);
     });
   }
+
+  async unlock() {
+    try {
+      this.audio.muted = true;
+      this.audio.src = "data:audio/mp3;base64,//uQZAAAAAAAAAAAAAAAAAAAAAA==";
+
+      const p = this.audio.play();
+      if (p && typeof p.then === "function") await p;
+
+      this.audio.pause();
+      this.audio.currentTime = 0;
+      this.audio.muted = false;
+
+      this.unlocked = true;
+      return true;
+    } catch (e) {
+      console.warn("Audio unlock failed:", e);
+      return false;
+    }
+}
 
   fadeIn(duration = 500) {
     clearInterval(this.fadeInterval);
