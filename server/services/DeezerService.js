@@ -69,19 +69,20 @@ class DeezerService {
         '1626235655'    // Feel good chanson
       ],
       english: [
-        '1313621735',   // Top US/UK
-        '1282495565',   // Pop Hits
-        '1280927871',   // Rock Classics
-        '1116189381',   // Top USA
-        '915432285',    // 2010s Hits
-        '1677006641'    // All Time Hits
+        '3576908782',   // Billboard Top 100 (2010-2014) - Katy Perry, Usher...
+        '8893297562',   // British Classics - Queen, Beatles, Elton John...
+        '1440322225',   // Billboard Number 1 Hits (2000-2014)
+        '11892916601',  // Billboard 1990s Top Hits
+        '4020143682',   // Billboard Top 40 Hits 1970s
+        '13650203641'   // 2020s Pop Hits
       ],
       spanish: [
-        '4823961464',   // Latino Hits
-        '1313623735',   // Reggaeton
-        '1282495615',   // Spanish Hits
-        '3540195466',   // Latin Pop
-        '6046498464'    // Exitos Latinos
+        '789123393',    // Reggaeton Classics (Daddy Yankee, Don Omar...)
+        '925131455',    // Latino Mix 2026
+        '178699142',    // Fuego Latino
+        '1273315391',   // Reggaeton Hits
+        '3279798822',   // Caliente
+        '8952147222'    // Latino annees 2010s
       ],
       mixed: [] // Utilisera les charts par defaut
     };
