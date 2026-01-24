@@ -8,47 +8,40 @@ class DeezerService {
   constructor() {
     this.baseUrl = 'https://api.deezer.com';
 
-    // Playlists Deezer par genre (IDs publics)
+    // Playlists Deezer par genre (IDs verifies)
     this.genrePlaylists = {
       pop: [
-        '1111141961',  // Top France
-        '1313621735',  // Hits du moment
-        '1282495565'   // Pop Hits
+        '4695117364',   // Best Pop Hits (Taylor Swift, Katy Perry, Ed Sheeran...)
+        '10001088582'   // Best Pop Songs of All Time (Glass Animals, BTS, Bruno Mars...)
       ],
       rock: [
-        '1280927871',  // Rock Classics
-        '1313619735',  // Rock Hits
-        '987654321'    // Alternative Rock
+        '1306931615',   // Rock Essentials (David Bowie, Pink Floyd, AC/DC...)
+        '4034900602'    // Classic Rock HITS (AC/DC, Kinks, Big Brother...)
       ],
       hiphop: [
-        '1111143121',  // Rap FR
-        '1313622775',  // Hip Hop Hits
-        '2098157264'   // Rap Francais
+        '10067544122',  // Classic Hip-Hop (Eric B. & Rakim, LL Cool J, N.W.A...)
+        '2341704526'    // Old School Hip Hop (Mobb Deep, Wu-Tang, Nas...)
       ],
       electro: [
-        '1111142221',  // Electro
-        '1313620735',  // Dance Hits
-        '1282495575'   // EDM Bangers
+        '1495242491',   // Dance Essentials (David Guetta, Hardwell...)
+        '1902101402'    // Electronic Hits (HUGEL, Vintage Culture, Fred again...)
       ],
       french: [
-        '1111141961',  // Top France
-        '1313624735',  // Variete Francaise
-        '1109890291'   // Chanson Francaise
+        '1884320402',   // Chansons Francaises de Legende
+        '700895155',    // Essentiels chanson francaise
+        '1420459465'    // Essentiels variete francaise
       ],
       '80s': [
-        '1313616735',  // 80s Hits
-        '1128147861',  // Best of 80s
-        '1282495585'   // 80s Classics
+        '2490400844',   // Essential 80s (Nena, Survivor, Cyndi Lauper...)
+        '11798808421'   // 80s HITS - 100 Greatest (a-ha, Madonna, Rick Astley...)
       ],
       '90s': [
-        '1313617735',  // 90s Hits
-        '1128147871',  // Best of 90s
-        '1282495595'   // 90s Classics
+        '878989033',    // 90s Hits (Nirvana, Oasis, Backstreet Boys...)
+        '11798812881'   // 90s HITS - 100 Greatest (Mark Morrison, Snap!, All Saints...)
       ],
       '2000s': [
-        '1313618735',  // 2000s Hits
-        '1282495605',  // Best of 2000s
-        '1128147881'   // 2000s Classics
+        '1977689462',   // 00s Party Hits (Eminem, Linkin Park, Shakira...)
+        '11153531204'   // 00s HITS - 100 Greatest (Kylie Minogue, Gnarls Barkley...)
       ]
     };
 
