@@ -55,7 +55,7 @@ class Room {
               class="btn ${isReady ? 'btn-danger' : 'btn-success'}"
               id="ready-btn"
             >
-              ${isReady ? 'Pas pret' : 'Pret !'}
+              ${isReady ? 'Pas prêt' : 'Prêt !'}
             </button>
 
             ${isHost ? `
@@ -104,7 +104,7 @@ class Room {
           </div>
           <div class="player-status ${player.isReady ? 'ready' : 'waiting'}">
             <span class="status-dot"></span>
-            ${player.isReady ? 'Pret' : 'En attente'}
+            ${player.isReady ? 'Prêt' : 'En attente'}
           </div>
         </div>
       </div>
@@ -132,10 +132,10 @@ class Room {
       rock: 'Rock',
       hiphop: 'Hip-Hop',
       electro: 'Electro',
-      french: 'Francaise',
-      '80s': 'Annees 80',
-      '90s': 'Annees 90',
-      '2000s': 'Annees 2000'
+      french: 'Française',
+      '80s': 'Années 80',
+      '90s': 'Années 90',
+      '2000s': 'Années 2000'
     };
     return genres[genre] || genre;
   }
@@ -146,11 +146,11 @@ class Room {
     copyBtn?.addEventListener('click', () => {
       const code = state.get('room.code');
       navigator.clipboard.writeText(code).then(() => {
-        socket.showToast('Code copie !', 'success');
+        socket.showToast('Code copié !', 'success');
       });
     });
 
-    // Pret / Pas pret
+    // Prêt / Pas prêt
     const readyBtn = this.container.querySelector('#ready-btn');
     readyBtn?.addEventListener('click', () => {
       const myPlayer = state.get('room.players').find(p => p.id === state.get('player.id'));

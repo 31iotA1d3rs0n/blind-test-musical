@@ -21,7 +21,7 @@ class Results {
     this.container.innerHTML = `
       <div class="game-over">
         <div class="card game-over-card">
-          <h1 class="game-over-title">Partie terminee !</h1>
+          <h1 class="game-over-title">Partie terminée !</h1>
 
           <div class="game-over-podium">
             ${podium.second ? `
@@ -59,7 +59,7 @@ class Results {
           </div>
 
           ${duration ? `
-            <p class="text-muted mb-md">Duree: ${duration}</p>
+            <p class="text-muted mb-md">Durée : ${duration}</p>
           ` : ''}
 
           ${results?.stats?.bestStreak?.streak >= 3 ? `

@@ -37,7 +37,7 @@ class Game {
       this.currentMode = 'playing';
       this.renderGame(game, scoreboard);
     } else {
-      // Mise a jour partielle sans toucher au formulaire
+      // Mise à jour partielle sans toucher au formulaire
       this.updateGameUI(game, scoreboard);
     }
   }
@@ -58,14 +58,14 @@ class Game {
         <div class="game-main">
           <div class="game-header card">
             <div class="round-info">Round ${game.currentRound}/${game.totalRounds}</div>
-            <div>Reponse revelee !</div>
+            <div>Réponse révélée !</div>
           </div>
 
           <div class="round-result">
             ${result.albumCover ? `
               <img
                 src="${result.albumCover}"
-                alt="Album cover"
+                alt="Pochette d’album"
                 class="round-result-album"
               >
             ` : `
@@ -122,7 +122,7 @@ class Game {
               type="text"
               id="answer-input"
               class="input"
-              placeholder="${foundBoth ? 'Bravo ! Tu as tout trouve !' : 'Tape ta reponse...'}"
+              placeholder="${foundBoth ? 'Bravo ! Tu as tout trouvé !' : 'Tape ta réponse…'}"
               autocomplete="off"
               ${foundBoth ? 'disabled' : ''}
             >
@@ -145,7 +145,7 @@ class Game {
   }
 
   updateGameUI(game, scoreboard) {
-    // Mettre a jour le timer
+    // Mettre à jour le timer
     const timerEl = this.container.querySelector('.timer');
     if (timerEl) {
       timerEl.textContent = `${game.timeRemaining}s`;
@@ -154,13 +154,13 @@ class Game {
       else if (game.timeRemaining <= 10) timerEl.classList.add('warning');
     }
 
-    // Mettre a jour le round info
+    // Mettre à jour le round info
     const roundInfo = this.container.querySelector('.round-info');
     if (roundInfo) {
       roundInfo.textContent = `Round ${game.currentRound}/${game.totalRounds}`;
     }
 
-    // Mettre a jour les badges de reponse
+    // Mettre à jour les badges de reponse
     const titleBadge = this.container.querySelector('.answer-status .status-badge:first-child');
     const artistBadge = this.container.querySelector('.answer-status .status-badge:last-child');
     if (titleBadge) {
@@ -172,7 +172,7 @@ class Game {
       artistBadge.innerHTML = `Artiste ${game.myAnswers.artist ? '&#10003;' : ''}`;
     }
 
-    // Mettre a jour le scoreboard
+    // Mettre à jour le scoreboard
     const scoreboardEl = this.container.querySelector('.scoreboard');
     if (scoreboardEl) {
       scoreboardEl.outerHTML = this.renderScoreboard(scoreboard);
@@ -184,7 +184,7 @@ class Game {
     const foundBoth = game.myAnswers.title && game.myAnswers.artist;
     if (input && foundBoth) {
       input.disabled = true;
-      input.placeholder = 'Bravo ! Tu as tout trouve !';
+      input.placeholder = 'Bravo ! Tu as tout trouvé !';
     }
     if (submitBtn && foundBoth) {
       submitBtn.disabled = true;

@@ -17,9 +17,9 @@ class Lobby {
               <div class="vinyl-disc">
                 <div class="vinyl-label"></div>
               </div>
-              <h1 class="lobby-title">Blind Test</h1>
+              <h1 class="lobby-title">Blind Test Musical</h1>
             </div>
-            <p class="lobby-subtitle">Devine les chansons avec tes amis !</p>
+            <p class="lobby-subtitle">Devine les morceaux avec tes amis 🎵</p>
           </div>
 
           <div class="input-group">
@@ -37,7 +37,7 @@ class Lobby {
 
           <div class="lobby-actions">
             <button id="create-room-btn" class="btn btn-primary btn-lg btn-block">
-              Creer une partie
+              Créer une partie
             </button>
 
             <div class="lobby-divider">ou rejoindre</div>
@@ -47,7 +47,7 @@ class Lobby {
                 type="text"
                 id="room-code"
                 class="input"
-                placeholder="CODE"
+                placeholder="Code (6 caractères)"
                 maxlength="6"
                 autocomplete="off"
               >
@@ -61,7 +61,7 @@ class Lobby {
       <div id="create-modal" class="modal-overlay hidden">
         <div class="modal">
           <div class="modal-header">
-            <h2 class="modal-title">Creer une partie</h2>
+            <h2 class="modal-title">Créer une partie</h2>
             <button class="modal-close" id="close-modal">&times;</button>
           </div>
 
@@ -74,10 +74,10 @@ class Lobby {
                 <option value="rock">Rock</option>
                 <option value="hiphop">Hip-Hop / Rap</option>
                 <option value="electro">Electro / Dance</option>
-                <option value="french">Variete Francaise</option>
-                <option value="80s">Annees 80</option>
-                <option value="90s">Annees 90</option>
-                <option value="2000s">Annees 2000</option>
+                <option value="french">Variété française</option>
+                <option value="80s">Années 80</option>
+                <option value="90s">Années 90</option>
+                <option value="2000s">Années 2000</option>
               </select>
             </div>
 
@@ -94,7 +94,7 @@ class Lobby {
               <label for="language">Langue des morceaux</label>
               <select id="language" class="input select">
                 <option value="mixed" selected>Mix International</option>
-                <option value="french">Francais uniquement</option>
+                <option value="french">Français uniquement</option>
                 <option value="english">Anglais / US</option>
                 <option value="spanish">Espagnol / Latino</option>
               </select>
@@ -112,7 +112,7 @@ class Lobby {
 
             <div class="modal-actions">
               <button type="button" class="btn btn-secondary" id="cancel-modal">Annuler</button>
-              <button type="submit" class="btn btn-primary">Creer</button>
+              <button type="submit" class="btn btn-primary">Créer</button>
             </div>
           </form>
         </div>
@@ -158,7 +158,7 @@ class Lobby {
       rapStyleGroup.classList.toggle('hidden', e.target.value !== 'hiphop');
     });
 
-    // Creer la room
+    // Créer la room
     createForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const genre = this.container.querySelector('#genre').value || null;
@@ -184,7 +184,7 @@ class Lobby {
 
       const code = codeInput.value.trim().toUpperCase();
       if (code.length !== 6) {
-        socket.showToast('Le code doit faire 6 caracteres', 'error');
+        socket.showToast('Le code doit faire 6 caractères', 'error');
         return;
       }
 
@@ -200,7 +200,7 @@ class Lobby {
   validateName() {
     const name = state.get('player.name');
     if (!name || name.length < 2) {
-      socket.showToast('Entre un pseudo (min 2 caracteres)', 'error');
+      socket.showToast('Entre un pseudo (min 2 caractères)', 'error');
       return false;
     }
     return true;
