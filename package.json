@@ -1,0 +1,25 @@
+{
+  "name": "blind-test-musical",
+  "version": "1.0.0",
+  "description": "Jeu de blind test musical en ligne multijoueur",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "nodemon server/index.js",
+    "test": "jest"
+  },
+  "keywords": ["blind-test", "music", "game", "multiplayer", "socket.io"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2",
+    "spotify-web-api-node": "^5.0.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.1"
+  }
+}
