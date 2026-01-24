@@ -30,11 +30,12 @@ module.exports = (io, socket) => {
       }
 
       // Recuperer les tracks depuis Deezer
-      console.log(`Fetching ${room.rounds} tracks for room ${room.code} (language: ${room.language})...`);
+      console.log(`Fetching ${room.rounds} tracks for room ${room.code} (genre: ${room.genre}, language: ${room.language}, rapStyle: ${room.rapStyle})...`);
       const tracks = await DeezerService.getRandomTracks({
         count: room.rounds,
         genre: room.genre,
-        language: room.language
+        language: room.language,
+        rapStyle: room.rapStyle
       });
 
       // Demarrer le jeu

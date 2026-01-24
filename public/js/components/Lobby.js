@@ -81,6 +81,15 @@ class Lobby {
               </select>
             </div>
 
+            <div class="input-group hidden" id="rap-style-group">
+              <label for="rap-style">Style de rap</label>
+              <select id="rap-style" class="input select">
+                <option value="both" selected>Tout (moderne + classique)</option>
+                <option value="modern">Rap actuel (2020+)</option>
+                <option value="classic">Hip-Hop classique</option>
+              </select>
+            </div>
+
             <div class="input-group">
               <label for="language">Langue des morceaux</label>
               <select id="language" class="input select">
@@ -141,17 +150,27 @@ class Lobby {
       if (e.target === modal) modal.classList.add('hidden');
     });
 
+    // Afficher/masquer l'option style de rap
+    const genreSelect = this.container.querySelector('#genre');
+    const rapStyleGroup = this.container.querySelector('#rap-style-group');
+
+    genreSelect.addEventListener('change', (e) => {
+      rapStyleGroup.classList.toggle('hidden', e.target.value !== 'hiphop');
+    });
+
     // Creer la room
     createForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const genre = this.container.querySelector('#genre').value || null;
       const language = this.container.querySelector('#language').value || 'mixed';
       const rounds = parseInt(this.container.querySelector('#rounds').value);
+      const rapStyle = this.container.querySelector('#rap-style').value || 'both';
 
       socket.createRoom(state.get('player.name'), {
         genre,
         language,
         rounds,
+        rapStyle,
         maxPlayers: 4
       });
 

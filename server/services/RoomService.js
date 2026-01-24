@@ -17,6 +17,7 @@ class RoomService {
       timePerRound: 30, // Fixe a 30 secondes (duree des extraits Deezer)
       genre: options.genre || null,
       language: options.language || 'mixed',
+      rapStyle: options.rapStyle || 'both',
       isPublic: options.isPublic || false
     });
 

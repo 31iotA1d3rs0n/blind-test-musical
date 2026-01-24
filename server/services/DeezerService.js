@@ -79,9 +79,53 @@ class DeezerService {
       ],
       mixed: [] // Utilisera les charts par defaut
     };
+
+    // Playlists combinees genre + langue (verifiees)
+    this.combinedPlaylists = {
+      // Pop
+      'pop_french': ['67175576', '10064137882'],
+      'pop_english': ['658490995', '13650203641', '3576908782'],
+      'pop_spanish': ['2559434604', '2099286188'],
+
+      // Rock
+      'rock_french': ['847814561', '1999438682'],
+      'rock_english': ['1306931615', '4034900602'],
+
+      // Hip-Hop (separe moderne/classique)
+      'hiphop_french_modern': ['5449454322', '1140276541', '12301876691'],
+      'hiphop_french_classic': ['1111143121'],
+      'hiphop_french': ['5449454322', '1140276541', '1111143121'],
+      'hiphop_english_modern': ['1132744911'],
+      'hiphop_english_classic': ['10067544122', '2341704526'],
+      'hiphop_english': ['1132744911', '10067544122', '2341704526'],
+      'hiphop_spanish': ['925131455', '789123393'],
+
+      // Electro
+      'electro_english': ['1495242491', '1902101402'],
+
+      // Decennies
+      '80s_english': ['2490400844', '11798808421'],
+      '90s_english': ['878989033', '11798812881'],
+      '2000s_english': ['1977689462', '11153531204']
+    };
+
+    // Termes de recherche pour fallback
+    this.searchTerms = {
+      'pop_french': 'pop francais hits',
+      'rock_french': 'rock francais',
+      'rock_spanish': 'rock en espanol',
+      'electro_french': 'electro francais dj',
+      'electro_spanish': 'electronica latina',
+      '80s_french': 'annees 80 variete francaise',
+      '80s_spanish': '80s latino',
+      '90s_french': 'annees 90 francais',
+      '90s_spanish': '90s latino',
+      '2000s_french': 'annees 2000 francais',
+      '2000s_spanish': '2000s latino'
+    };
   }
 
-  async getRandomTracks({ count = 10, genre = null, language = 'mixed' }) {
+  async getRandomTracks({ count = 10, genre = null, language = 'mixed', rapStyle = 'both' }) {
     const tracks = [];
     const usedIds = new Set();
     const usedArtists = new Set(); // Eviter les doublons d'artistes
@@ -94,18 +138,22 @@ class DeezerService {
       try {
         let data;
 
-        if (genre && this.genrePlaylists[genre]) {
-          // Recuperer depuis une playlist du genre
-          const playlists = this.genrePlaylists[genre];
-          const playlistId = playlists[Math.floor(Math.random() * playlists.length)];
-          data = await this.fetchPlaylistTracks(playlistId);
-        } else if (language && language !== 'mixed' && this.languagePlaylists[language]?.length > 0) {
-          // Recuperer depuis une playlist de la langue choisie
+        // Priorite 1: Genre + Langue combines
+        if (genre && language && language !== 'mixed') {
+          data = await this.fetchCombinedTracks(genre, language, rapStyle);
+        }
+        // Priorite 2: Genre seul (mixed)
+        else if (genre && this.genrePlaylists[genre]) {
+          data = await this.fetchGenreTracks(genre, rapStyle);
+        }
+        // Priorite 3: Langue seule
+        else if (language && language !== 'mixed' && this.languagePlaylists[language]?.length > 0) {
           const playlists = this.languagePlaylists[language];
           const playlistId = playlists[Math.floor(Math.random() * playlists.length)];
           data = await this.fetchPlaylistTracks(playlistId);
-        } else {
-          // Utiliser les charts par defaut
+        }
+        // Priorite 4: Charts par defaut
+        else {
           data = await this.fetchChartTracks();
         }
 
@@ -151,6 +199,75 @@ class DeezerService {
     }
 
     return this.shuffleArray(tracks).slice(0, count);
+  }
+
+  // Recuperer tracks combines genre + langue
+  async fetchCombinedTracks(genre, language, rapStyle) {
+    // Construire la cle
+    let key = `${genre}_${language}`;
+
+    // Cas special pour hip-hop avec style
+    if (genre === 'hiphop' && rapStyle !== 'both') {
+      key = `${genre}_${language}_${rapStyle}`;
+    }
+
+    // Essayer playlist combinee
+    if (this.combinedPlaylists[key]?.length > 0) {
+      const playlists = this.combinedPlaylists[key];
+      const playlistId = playlists[Math.floor(Math.random() * playlists.length)];
+      const data = await this.fetchPlaylistTracks(playlistId);
+      if (data?.length > 0) return data;
+    }
+
+    // Fallback: recherche avec termes combines
+    const searchKey = `${genre}_${language}`;
+    if (this.searchTerms[searchKey]) {
+      const data = await this.searchTracks(this.searchTerms[searchKey]);
+      if (data?.length > 0) return data;
+    }
+
+    // Fallback final: genre seul
+    return await this.fetchGenreTracks(genre, rapStyle);
+  }
+
+  // Recuperer tracks par genre (avec gestion rapStyle pour hip-hop)
+  async fetchGenreTracks(genre, rapStyle) {
+    // Cas special pour hip-hop
+    if (genre === 'hiphop' && rapStyle !== 'both') {
+      const styleKey = rapStyle === 'modern' ? 'hiphop_english_modern' : 'hiphop_english_classic';
+      if (this.combinedPlaylists[styleKey]?.length > 0) {
+        const playlists = this.combinedPlaylists[styleKey];
+        const playlistId = playlists[Math.floor(Math.random() * playlists.length)];
+        return await this.fetchPlaylistTracks(playlistId);
+      }
+    }
+
+    // Genre standard
+    if (this.genrePlaylists[genre]) {
+      const playlists = this.genrePlaylists[genre];
+      const playlistId = playlists[Math.floor(Math.random() * playlists.length)];
+      return await this.fetchPlaylistTracks(playlistId);
+    }
+
+    return [];
+  }
+
+  // Recherche avec un terme specifique
+  async searchTracks(query) {
+    try {
+      const response = await fetch(`${this.baseUrl}/search?q=${encodeURIComponent(query)}&limit=100`);
+      const data = await response.json();
+
+      if (data.error) {
+        console.warn(`Search error for "${query}":`, data.error.message);
+        return [];
+      }
+
+      return data.data || [];
+    } catch (error) {
+      console.error('Search error:', error);
+      return [];
+    }
   }
 
   async fetchPlaylistTracks(playlistId) {

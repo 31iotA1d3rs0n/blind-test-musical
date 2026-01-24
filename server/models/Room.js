@@ -1,5 +1,5 @@
 class Room {
-  constructor({ code, hostId, maxPlayers = 4, rounds = 10, timePerRound = 30, genre = null, language = 'mixed', isPublic = false }) {
+  constructor({ code, hostId, maxPlayers = 4, rounds = 10, timePerRound = 30, genre = null, language = 'mixed', rapStyle = 'both', isPublic = false }) {
     this.code = code;
     this.hostId = hostId;
     this.maxPlayers = maxPlayers;
@@ -7,6 +7,7 @@ class Room {
     this.timePerRound = timePerRound;
     this.genre = genre;
     this.language = language;
+    this.rapStyle = rapStyle;
     this.isPublic = isPublic;
     this.players = new Map(); // socketId -> Player
     this.status = 'waiting'; // waiting | playing | finished
