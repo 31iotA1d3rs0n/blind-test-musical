@@ -82,21 +82,22 @@ class Lobby {
             </div>
 
             <div class="input-group">
+              <label for="language">Langue des morceaux</label>
+              <select id="language" class="input select">
+                <option value="mixed" selected>Mix International</option>
+                <option value="french">Francais uniquement</option>
+                <option value="english">Anglais / US</option>
+                <option value="spanish">Espagnol / Latino</option>
+              </select>
+            </div>
+
+            <div class="input-group">
               <label for="rounds">Nombre de rounds</label>
               <select id="rounds" class="input select">
                 <option value="5">5 rounds</option>
                 <option value="10" selected>10 rounds</option>
                 <option value="15">15 rounds</option>
                 <option value="20">20 rounds</option>
-              </select>
-            </div>
-
-            <div class="input-group">
-              <label for="time">Temps par round</label>
-              <select id="time" class="input select">
-                <option value="20">20 secondes</option>
-                <option value="30" selected>30 secondes</option>
-                <option value="45">45 secondes</option>
               </select>
             </div>
 
@@ -144,13 +145,13 @@ class Lobby {
     createForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const genre = this.container.querySelector('#genre').value || null;
+      const language = this.container.querySelector('#language').value || 'mixed';
       const rounds = parseInt(this.container.querySelector('#rounds').value);
-      const timePerRound = parseInt(this.container.querySelector('#time').value);
 
       socket.createRoom(state.get('player.name'), {
         genre,
+        language,
         rounds,
-        timePerRound,
         maxPlayers: 4
       });
 

@@ -14,8 +14,9 @@ class RoomService {
       hostId: hostSocketId,
       maxPlayers: options.maxPlayers || 4,
       rounds: options.rounds || 10,
-      timePerRound: options.timePerRound || 30,
+      timePerRound: 30, // Fixe a 30 secondes (duree des extraits Deezer)
       genre: options.genre || null,
+      language: options.language || 'mixed',
       isPublic: options.isPublic || false
     });
 

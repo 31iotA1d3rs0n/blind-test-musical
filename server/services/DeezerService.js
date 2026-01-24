@@ -57,9 +57,37 @@ class DeezerService {
       'https://api.deezer.com/chart/0/tracks',  // Top mondial
       'https://api.deezer.com/chart/113/tracks' // Top France
     ];
+
+    // Playlists par langue
+    this.languagePlaylists = {
+      french: [
+        '1111141961',   // Top France
+        '1109890291',   // Chanson Francaise
+        '1313624735',   // Variete Francaise
+        '1111143121',   // Rap FR
+        '4403076402',   // French Hits
+        '1996494362'    // 100% Francais
+      ],
+      english: [
+        '1313621735',   // Top US
+        '1282495565',   // Pop Hits
+        '1280927871',   // Rock Classics
+        '1313622775',   // Hip Hop Hits
+        '3155776842',   // UK Top 50
+        '1116189381'    // Top USA
+      ],
+      spanish: [
+        '4823961464',   // Latino Hits
+        '1313623735',   // Reggaeton
+        '2701314554',   // Top Espana
+        '4403120062',   // Latin Pop
+        '1282495615'    // Spanish Hits
+      ],
+      mixed: [] // Utilisera les charts par defaut
+    };
   }
 
-  async getRandomTracks({ count = 10, genre = null }) {
+  async getRandomTracks({ count = 10, genre = null, language = 'mixed' }) {
     const tracks = [];
     const usedIds = new Set();
     const usedArtists = new Set(); // Eviter les doublons d'artistes
@@ -75,6 +103,11 @@ class DeezerService {
         if (genre && this.genrePlaylists[genre]) {
           // Recuperer depuis une playlist du genre
           const playlists = this.genrePlaylists[genre];
+          const playlistId = playlists[Math.floor(Math.random() * playlists.length)];
+          data = await this.fetchPlaylistTracks(playlistId);
+        } else if (language && language !== 'mixed' && this.languagePlaylists[language]?.length > 0) {
+          // Recuperer depuis une playlist de la langue choisie
+          const playlists = this.languagePlaylists[language];
           const playlistId = playlists[Math.floor(Math.random() * playlists.length)];
           data = await this.fetchPlaylistTracks(playlistId);
         } else {
