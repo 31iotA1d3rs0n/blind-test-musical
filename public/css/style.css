@@ -776,17 +776,25 @@ hr{ border:none; border-top:1px solid var(--border); }
   gap: 12px;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 14px;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
-  margin: 12px 0;
+  padding: 14px 18px;
+  border: 2px solid rgba(245, 158, 11, 0.5);
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(251, 191, 36, 0.08));
+  box-shadow: 0 8px 20px rgba(245, 158, 11, 0.15);
+  margin: var(--s-3) var(--s-5);
+  animation: pulse-audio 2s ease-in-out infinite;
+}
+
+@keyframes pulse-audio {
+  0%, 100% { box-shadow: 0 8px 20px rgba(245, 158, 11, 0.15); }
+  50% { box-shadow: 0 8px 30px rgba(245, 158, 11, 0.3); }
 }
 
 .audio-gate .muted {
-  opacity: 0.7;
+  color: var(--text-2);
   font-size: 0.9rem;
 }
 
-.hidden { display: none !important; }
+.audio-gate strong {
+  color: #92400E;
+}

@@ -1,5 +1,6 @@
 import state from '../state/GameState.js';
 import socket from '../services/SocketService.js';
+import audio from '../services/AudioService.js';
 import Chat from './Chat.js';
 
 class Room {
@@ -152,14 +153,18 @@ class Room {
 
     // Prêt / Pas prêt
     const readyBtn = this.container.querySelector('#ready-btn');
-    readyBtn?.addEventListener('click', () => {
+    readyBtn?.addEventListener('click', async () => {
+      // Pré-débloquer l'audio au clic (important pour Safari/mobile)
+      await audio.unlock();
       const myPlayer = state.get('room.players').find(p => p.id === state.get('player.id'));
       socket.setReady(!myPlayer?.isReady);
     });
 
     // Lancer la partie
     const startBtn = this.container.querySelector('#start-btn');
-    startBtn?.addEventListener('click', () => {
+    startBtn?.addEventListener('click', async () => {
+      // Pré-débloquer l'audio au clic (important pour Safari/mobile)
+      await audio.unlock();
       socket.startGame();
     });
 

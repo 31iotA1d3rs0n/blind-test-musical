@@ -1,5 +1,6 @@
 import state from '../state/GameState.js';
 import socket from '../services/SocketService.js';
+import audio from '../services/AudioService.js';
 
 class Lobby {
   constructor(container) {
@@ -159,8 +160,11 @@ class Lobby {
     });
 
     // Créer la room
-    createForm.addEventListener('submit', (e) => {
+    createForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+      // Pré-débloquer l'audio au clic (important pour Safari/mobile)
+      await audio.unlock();
+
       const genre = this.container.querySelector('#genre').value || null;
       const language = this.container.querySelector('#language').value || 'mixed';
       const rounds = parseInt(this.container.querySelector('#rounds').value);
@@ -178,9 +182,12 @@ class Lobby {
     });
 
     // Rejoindre une room
-    joinForm.addEventListener('submit', (e) => {
+    joinForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (!this.validateName()) return;
+
+      // Pré-débloquer l'audio au clic (important pour Safari/mobile)
+      await audio.unlock();
 
       const code = codeInput.value.trim().toUpperCase();
       if (code.length !== 6) {
