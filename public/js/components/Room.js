@@ -153,18 +153,18 @@ class Room {
 
     // Prêt / Pas prêt
     const readyBtn = this.container.querySelector('#ready-btn');
-    readyBtn?.addEventListener('click', async () => {
+    readyBtn?.addEventListener('click', () => {
       // Pré-débloquer l'audio au clic (important pour Safari/mobile)
-      await audio.unlock();
+      audio.unlock();
       const myPlayer = state.get('room.players').find(p => p.id === state.get('player.id'));
       socket.setReady(!myPlayer?.isReady);
     });
 
     // Lancer la partie
     const startBtn = this.container.querySelector('#start-btn');
-    startBtn?.addEventListener('click', async () => {
+    startBtn?.addEventListener('click', () => {
       // Pré-débloquer l'audio au clic (important pour Safari/mobile)
-      await audio.unlock();
+      audio.unlock();
       socket.startGame();
     });
 

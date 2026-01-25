@@ -160,10 +160,10 @@ class Lobby {
     });
 
     // Créer la room
-    createForm.addEventListener('submit', async (e) => {
+    createForm.addEventListener('submit', (e) => {
       e.preventDefault();
       // Pré-débloquer l'audio au clic (important pour Safari/mobile)
-      await audio.unlock();
+      audio.unlock();
 
       const genre = this.container.querySelector('#genre').value || null;
       const language = this.container.querySelector('#language').value || 'mixed';
@@ -182,12 +182,12 @@ class Lobby {
     });
 
     // Rejoindre une room
-    joinForm.addEventListener('submit', async (e) => {
+    joinForm.addEventListener('submit', (e) => {
       e.preventDefault();
       if (!this.validateName()) return;
 
       // Pré-débloquer l'audio au clic (important pour Safari/mobile)
-      await audio.unlock();
+      audio.unlock();
 
       const code = codeInput.value.trim().toUpperCase();
       if (code.length !== 6) {
