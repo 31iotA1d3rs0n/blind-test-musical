@@ -4,6 +4,8 @@ class AudioService {
     this.isPlaying = false;
     this.fadeInterval = null;
     this.currentUrl = null;
+    this.unlocked = false;
+    this.unlocking = null; // Promise en cours
   }
 
   play(url) {
@@ -79,24 +81,42 @@ class AudioService {
   }
 
   async unlock() {
-    try {
-      this.audio.muted = true;
-      this.audio.src = "data:audio/mp3;base64,//uQZAAAAAAAAAAAAAAAAAAAAAA==";
+    // Déjà débloqué
+    if (this.unlocked) return true;
 
-      const p = this.audio.play();
-      if (p && typeof p.then === "function") await p;
+    // Unlock en cours, attendre le résultat
+    if (this.unlocking) return this.unlocking;
 
-      this.audio.pause();
-      this.audio.currentTime = 0;
-      this.audio.muted = false;
+    // Utiliser un élément audio SÉPARÉ pour ne pas interférer avec this.audio
+    this.unlocking = (async () => {
+      try {
+        const tempAudio = new Audio();
+        tempAudio.muted = true;
+        tempAudio.src = "data:audio/mp3;base64,//uQZAAAAAAAAAAAAAAAAAAAAAA==";
 
-      this.unlocked = true;
-      return true;
-    } catch (e) {
-      console.warn("Audio unlock failed:", e);
-      return false;
-    }
-}
+        const p = tempAudio.play();
+        if (p && typeof p.then === "function") await p;
+
+        tempAudio.pause();
+        tempAudio.src = "";
+
+        this.unlocked = true;
+        return true;
+      } catch (e) {
+        // AbortError est OK, ça veut dire que le contexte audio est quand même débloqué
+        if (e?.name === "AbortError") {
+          this.unlocked = true;
+          return true;
+        }
+        console.warn("Audio unlock failed:", e);
+        return false;
+      } finally {
+        this.unlocking = null;
+      }
+    })();
+
+    return this.unlocking;
+  }
 
   fadeIn(duration = 500) {
     clearInterval(this.fadeInterval);
