@@ -22,6 +22,16 @@ class Room {
     this.players.delete(socketId);
   }
 
+  removePlayerById(playerId) {
+    for (const [socketId, player] of this.players) {
+      if (player.id === playerId) {
+        this.players.delete(socketId);
+        return true;
+      }
+    }
+    return false;
+  }
+
   getPlayer(socketId) {
     return this.players.get(socketId);
   }
@@ -29,6 +39,18 @@ class Room {
   getPlayerById(playerId) {
     for (const player of this.players.values()) {
       if (player.id === playerId) return player;
+    }
+    return null;
+  }
+
+  updatePlayerSocket(playerId, newSocketId) {
+    for (const [oldSocketId, player] of this.players) {
+      if (player.id === playerId) {
+        this.players.delete(oldSocketId);
+        player.socketId = newSocketId;
+        this.players.set(newSocketId, player);
+        return player;
+      }
     }
     return null;
   }

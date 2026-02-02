@@ -134,6 +134,43 @@ class GameState {
     this.state.scoreboard = scoreboard;
     this.emit('change:scoreboard', { value: scoreboard });
   }
+
+  // Sauvegarder la session pour reconnexion
+  saveSession() {
+    const session = {
+      roomCode: this.state.room?.code,
+      playerId: this.state.player.id,
+      playerName: this.state.player.name,
+      currentView: this.state.ui.currentView,
+      savedAt: Date.now()
+    };
+    sessionStorage.setItem('blindTestSession', JSON.stringify(session));
+  }
+
+  // Restaurer la session
+  getSession() {
+    try {
+      const session = sessionStorage.getItem('blindTestSession');
+      if (!session) return null;
+
+      const data = JSON.parse(session);
+
+      // Verifier que la session n'est pas trop vieille (2 minutes)
+      if (Date.now() - data.savedAt > 2 * 60 * 1000) {
+        this.clearSession();
+        return null;
+      }
+
+      return data;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Effacer la session
+  clearSession() {
+    sessionStorage.removeItem('blindTestSession');
+  }
 }
 
 // Singleton

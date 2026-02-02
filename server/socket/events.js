@@ -11,7 +11,11 @@ const EVENTS = {
     UPDATED: 'room:updated',            // Server -> Room
     READY: 'room:ready',                // Client -> Server
     ERROR: 'room:error',                // Server -> Client
-    HOST_CHANGED: 'room:host_changed'   // Server -> Room
+    HOST_CHANGED: 'room:host_changed',  // Server -> Room
+    REJOIN: 'room:rejoin',              // Client -> Server (reconnexion)
+    REJOINED: 'room:rejoined',          // Server -> Client (confirmation reconnexion)
+    PLAYER_DISCONNECTED: 'room:player_disconnected', // Server -> Room
+    PLAYER_RECONNECTED: 'room:player_reconnected'    // Server -> Room
   },
 
   // === GAME EVENTS ===

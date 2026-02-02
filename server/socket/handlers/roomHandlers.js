@@ -82,14 +82,19 @@ module.exports = (io, socket) => {
     }
   });
 
-  // Quitter la room
+  // Quitter la room (volontaire)
   socket.on(EVENTS.ROOM.LEAVE, () => {
-    handleLeave(io, socket);
+    handleLeave(io, socket, true); // forceRemove = true
   });
 
-  // Deconnexion
+  // Deconnexion (involontaire - perte de connexion)
   socket.on(EVENTS.CONNECTION.DISCONNECT, () => {
-    handleLeave(io, socket);
+    handleDisconnect(io, socket);
+  });
+
+  // Reconnexion
+  socket.on(EVENTS.ROOM.REJOIN, (data) => {
+    handleRejoin(io, socket, data);
   });
 
   // Changer l'etat "pret"
@@ -115,7 +120,8 @@ module.exports = (io, socket) => {
   });
 };
 
-function handleLeave(io, socket) {
+// Depart volontaire (bouton quitter)
+function handleLeave(io, socket, forceRemove = false) {
   try {
     const result = RoomService.leaveRoom(socket.id);
     if (!result) return;
@@ -156,9 +162,94 @@ function handleLeave(io, socket) {
       io.to(room.code).emit(EVENTS.ROOM.UPDATED, room.toPublicJSON());
     }
 
-    console.log(`Player left room`);
+    console.log(`Player left room (voluntary)`);
 
   } catch (error) {
     console.error('Error leaving room:', error);
+  }
+}
+
+// Deconnexion involontaire (perte de connexion, app en arriere-plan)
+function handleDisconnect(io, socket) {
+  try {
+    const result = RoomService.markPlayerDisconnected(socket.id);
+    if (!result) return;
+
+    const { room, player } = result;
+
+    // Quitter la room Socket.io
+    socket.leave(room.code);
+
+    // Notifier les autres que le joueur s'est deconnecte (mais peut revenir)
+    io.to(room.code).emit(EVENTS.ROOM.PLAYER_DISCONNECTED, {
+      playerId: player.id,
+      playerName: player.name
+    });
+
+    // Message systeme
+    io.to(room.code).emit(EVENTS.CHAT.SYSTEM, {
+      message: `${player.name} s'est deconnecte (peut revenir dans 2 min)`,
+      type: 'disconnect'
+    });
+
+    // Mettre a jour la room
+    io.to(room.code).emit(EVENTS.ROOM.UPDATED, room.toPublicJSON());
+
+    console.log(`Player ${player.name} disconnected from room ${room.code} (can rejoin)`);
+
+  } catch (error) {
+    console.error('Error handling disconnect:', error);
+  }
+}
+
+// Reconnexion d'un joueur
+function handleRejoin(io, socket, data) {
+  try {
+    const { code, playerId, playerName } = data;
+
+    if (!code || !playerId) {
+      socket.emit(EVENTS.ROOM.ERROR, { message: 'Donnees de reconnexion invalides' });
+      return;
+    }
+
+    const { room, player } = RoomService.rejoinRoom(code, playerId, socket.id);
+
+    // Rejoindre la room Socket.io
+    socket.join(room.code);
+
+    // Confirmer au joueur
+    socket.emit(EVENTS.ROOM.REJOINED, {
+      room: room.toPublicJSON(),
+      player: player.toPublicJSON()
+    });
+
+    // Notifier les autres
+    io.to(room.code).emit(EVENTS.ROOM.PLAYER_RECONNECTED, {
+      playerId: player.id,
+      playerName: player.name
+    });
+
+    // Message systeme
+    io.to(room.code).emit(EVENTS.CHAT.SYSTEM, {
+      message: `${player.name} s'est reconnecte`,
+      type: 'reconnect'
+    });
+
+    // Mettre a jour la room
+    io.to(room.code).emit(EVENTS.ROOM.UPDATED, room.toPublicJSON());
+
+    console.log(`Player ${player.name} rejoined room ${room.code}`);
+
+  } catch (error) {
+    console.error('Error rejoining room:', error);
+    const messages = {
+      'ROOM_NOT_FOUND': 'Room introuvable',
+      'PLAYER_NOT_FOUND': 'Session introuvable',
+      'PLAYER_NOT_DISCONNECTED': 'Vous etes deja connecte',
+      'SESSION_EXPIRED': 'Session expiree (delai depasse)'
+    };
+    socket.emit(EVENTS.ROOM.ERROR, {
+      message: messages[error.message] || 'Erreur lors de la reconnexion'
+    });
   }
 }

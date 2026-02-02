@@ -1,6 +1,7 @@
 const roomHandlers = require('./handlers/roomHandlers');
 const gameHandlers = require('./handlers/gameHandlers');
 const chatHandlers = require('./handlers/chatHandlers');
+const RoomService = require('../services/RoomService');
 
 function initializeSocket(io) {
   io.on('connection', (socket) => {
@@ -16,6 +17,11 @@ function initializeSocket(io) {
       socket.emit('pong');
     });
   });
+
+  // Nettoyage periodique des joueurs deconnectes (toutes les 30 secondes)
+  setInterval(() => {
+    RoomService.cleanupDisconnectedPlayers();
+  }, 30000);
 
   console.log('Socket.io initialized');
 }

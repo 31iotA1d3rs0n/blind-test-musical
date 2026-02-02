@@ -9,6 +9,7 @@ class Player {
     this.streak = 0;
     this.foundTitle = false;
     this.foundArtist = false;
+    this.disconnectedAt = null; // Timestamp de deconnexion temporaire
   }
 
   generateAvatar() {
@@ -41,6 +42,24 @@ class Player {
     return this.foundTitle && this.foundArtist;
   }
 
+  markDisconnected() {
+    this.disconnectedAt = Date.now();
+  }
+
+  markReconnected(newSocketId) {
+    this.socketId = newSocketId;
+    this.disconnectedAt = null;
+  }
+
+  isDisconnected() {
+    return this.disconnectedAt !== null;
+  }
+
+  getDisconnectedDuration() {
+    if (!this.disconnectedAt) return 0;
+    return Date.now() - this.disconnectedAt;
+  }
+
   toPublicJSON() {
     return {
       id: this.id,
@@ -48,7 +67,8 @@ class Player {
       avatar: this.avatar,
       isReady: this.isReady,
       score: this.score,
-      streak: this.streak
+      streak: this.streak,
+      isDisconnected: this.isDisconnected()
     };
   }
 }

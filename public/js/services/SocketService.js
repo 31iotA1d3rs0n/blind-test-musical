@@ -5,6 +5,7 @@ class SocketService {
   constructor() {
     this.socket = null;
     this.connected = false;
+    this.reconnecting = false;
   }
 
   connect() {
@@ -17,6 +18,11 @@ class SocketService {
           this.connected = true;
           state.set('player.socketId', this.socket.id);
           this.setupListeners();
+          this.setupVisibilityHandler();
+
+          // Tenter de rejoindre si session existante
+          this.tryRejoinFromSession();
+
           resolve();
         });
 
@@ -46,6 +52,7 @@ class SocketService {
         'player.avatar': player.avatar,
         'ui.currentView': 'room'
       });
+      state.saveSession();
     });
 
     this.socket.on('room:joined', ({ room, player }) => {
@@ -55,6 +62,44 @@ class SocketService {
         'player.avatar': player.avatar,
         'ui.currentView': 'room'
       });
+      state.saveSession();
+    });
+
+    // Reconnexion reussie
+    this.socket.on('room:rejoined', ({ room, player }) => {
+      state.update({
+        'room': room,
+        'player.id': player.id,
+        'player.avatar': player.avatar,
+        'ui.currentView': room.status === 'playing' ? 'game' : 'room'
+      });
+      state.saveSession();
+      this.reconnecting = false;
+      this.showToast('Reconnecte!', 'success');
+    });
+
+    // Joueur deconnecte temporairement
+    this.socket.on('room:player_disconnected', ({ playerId, playerName }) => {
+      const room = state.get('room');
+      if (room) {
+        const player = room.players.find(p => p.id === playerId);
+        if (player) {
+          player.isDisconnected = true;
+          state.set('room', { ...room });
+        }
+      }
+    });
+
+    // Joueur reconnecte
+    this.socket.on('room:player_reconnected', ({ playerId, playerName }) => {
+      const room = state.get('room');
+      if (room) {
+        const player = room.players.find(p => p.id === playerId);
+        if (player) {
+          player.isDisconnected = false;
+          state.set('room', { ...room });
+        }
+      }
     });
 
     this.socket.on('room:updated', (room) => {
@@ -88,6 +133,12 @@ class SocketService {
     this.socket.on('room:error', ({ message }) => {
       state.set('ui.error', message);
       this.showToast(message, 'error');
+
+      // Si erreur lors de reconnexion, effacer la session
+      if (this.reconnecting) {
+        this.reconnecting = false;
+        state.clearSession();
+      }
     });
 
     // === GAME EVENTS ===
@@ -128,6 +179,8 @@ class SocketService {
           state.set('game.myAnswers.artist', true);
         }
         this.showToast(`+${result.points} points!`, 'success');
+      } else {
+        this.showToast('Rate ! Essaie encore...', 'error');
       }
     });
 
@@ -176,6 +229,7 @@ class SocketService {
 
   leaveRoom() {
     this.socket.emit('room:leave');
+    state.clearSession();
     state.reset();
   }
 
@@ -224,6 +278,70 @@ class SocketService {
     container.className = 'toast-container';
     document.body.appendChild(container);
     return container;
+  }
+
+  // === RECONNEXION ===
+
+  setupVisibilityHandler() {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        console.log('App visible - checking connection...');
+        this.handleVisibilityChange();
+      }
+    });
+  }
+
+  handleVisibilityChange() {
+    // Si on est deja connecte et dans une room, mettre a jour la session
+    if (this.connected && state.get('room')) {
+      state.saveSession();
+      return;
+    }
+
+    // Si deconnecte, tenter reconnexion
+    if (!this.connected && !this.reconnecting) {
+      this.tryReconnect();
+    }
+  }
+
+  tryReconnect() {
+    const session = state.getSession();
+    if (!session) return;
+
+    this.reconnecting = true;
+    this.showToast('Reconnexion en cours...', 'info');
+
+    // Reconnecter le socket
+    if (this.socket && !this.socket.connected) {
+      this.socket.connect();
+    }
+  }
+
+  tryRejoinFromSession() {
+    const session = state.getSession();
+    if (!session || !session.roomCode || !session.playerId) return;
+
+    // Ne pas rejoindre si on est deja dans la room
+    if (state.get('room')?.code === session.roomCode) return;
+
+    console.log('Trying to rejoin room:', session.roomCode);
+    this.reconnecting = true;
+    this.showToast('Reconnexion a la partie...', 'info');
+
+    this.socket.emit('room:rejoin', {
+      code: session.roomCode,
+      playerId: session.playerId,
+      playerName: session.playerName
+    });
+
+    // Si pas de reponse apres 5 secondes, abandonner
+    setTimeout(() => {
+      if (this.reconnecting) {
+        this.reconnecting = false;
+        state.clearSession();
+        this.showToast('Session expiree', 'error');
+      }
+    }, 5000);
   }
 
   disconnect() {

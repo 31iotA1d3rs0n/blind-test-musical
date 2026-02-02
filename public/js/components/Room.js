@@ -92,9 +92,21 @@ class Room {
   renderPlayer(player, hostId, myId) {
     const isHost = player.socketId === hostId;
     const isMe = player.id === myId;
+    const isDisconnected = player.isDisconnected;
+
+    let statusClass = 'waiting';
+    let statusText = 'En attente';
+
+    if (isDisconnected) {
+      statusClass = 'disconnected';
+      statusText = 'Deconnecte';
+    } else if (player.isReady) {
+      statusClass = 'ready';
+      statusText = 'Pret';
+    }
 
     return `
-      <div class="player-card ${isHost ? 'is-host' : ''}">
+      <div class="player-card ${isHost ? 'is-host' : ''} ${isDisconnected ? 'disconnected' : ''}">
         <div class="player-avatar" style="background-color: ${player.avatar}">
           ${player.name.charAt(0).toUpperCase()}
         </div>
@@ -103,9 +115,9 @@ class Room {
             ${player.name}
             ${isMe ? ' (toi)' : ''}
           </div>
-          <div class="player-status ${player.isReady ? 'ready' : 'waiting'}">
+          <div class="player-status ${statusClass}">
             <span class="status-dot"></span>
-            ${player.isReady ? 'Prêt' : 'En attente'}
+            ${statusText}
           </div>
         </div>
       </div>
