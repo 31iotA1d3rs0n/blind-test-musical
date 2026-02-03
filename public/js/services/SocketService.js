@@ -81,6 +81,8 @@ class SocketService {
           'game.currentRound': gameState.currentRound,
           'game.totalRounds': gameState.totalRounds,
           'game.previewUrl': gameState.previewUrl,
+          'game.roundStartedAt': gameState.roundStartedAt,
+          'game.audioPosition': gameState.audioPosition || 0, // Position audio pour synchro
           'game.myAnswers': gameState.myAnswers
         });
         state.updateScoreboard(gameState.scoreboard);
@@ -173,6 +175,8 @@ class SocketService {
         'game.currentRound': data.roundNumber,
         'game.previewUrl': data.previewUrl,
         'game.timeRemaining': data.duration,
+        'game.roundStartedAt': data.roundStartedAt || Date.now(), // Timestamp du serveur
+        'game.audioPosition': 0, // Reset pour nouveau round
         'game.myAnswers': { title: false, artist: false },
         'game.roundResult': null,
         'game.countdown': null

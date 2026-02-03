@@ -150,7 +150,10 @@ class Game {
 
     this.attachListeners();
     this.initChat();
-    this.handleAudio(game.previewUrl);
+
+    // Calculer la position audio (pour la synchro apres reconnexion)
+    const audioPosition = game.audioPosition || state.getAudioPosition();
+    this.handleAudio(game.previewUrl, audioPosition);
   }
 
   updateGameUI(game, scoreboard) {
@@ -199,8 +202,9 @@ class Game {
       submitBtn.disabled = true;
     }
 
-    // Gerer l'audio
-    this.handleAudio(game.previewUrl);
+    // Gerer l'audio (calculer position pour synchro)
+    const audioPosition = game.audioPosition || state.getAudioPosition();
+    this.handleAudio(game.previewUrl, audioPosition);
   }
 
   renderScoreboard(scoreboard) {
@@ -268,17 +272,29 @@ class Game {
     // Bouton d'activation audio (important pour Safari / autoplay)
     const enableBtn = this.container.querySelector('#enable-audio');
     enableBtn?.addEventListener('click', async () => {
-      const ok = await audio.unlock();
-      if (ok) {
-        this.setAudioGateVisible(false);
-        // Relancer l'audio si une manche est en cours
-        const game = state.get('game');
-        if (game?.previewUrl) {
-          const played = await audio.play(game.previewUrl);
-          if (played === false) this.setAudioGateVisible(true);
+      // Tenter le unlock (mais on essaie de jouer quand meme apres)
+      await audio.unlock();
+
+      // Relancer l'audio si une manche est en cours
+      // Le clic utilisateur devrait autoriser la lecture meme si unlock a echoue
+      const game = state.get('game');
+      if (game?.previewUrl) {
+        try {
+          // Calculer la position audio actuelle pour synchro
+          const audioPosition = game.audioPosition || state.getAudioPosition();
+          const played = await audio.play(game.previewUrl, audioPosition);
+          if (played === false) {
+            this.setAudioGateVisible(true);
+          } else {
+            this.setAudioGateVisible(false);
+          }
+        } catch (err) {
+          console.error('Failed to play audio after unlock:', err);
+          this.setAudioGateVisible(true);
         }
       } else {
-        this.setAudioGateVisible(true);
+        // Pas de musique en cours, cacher le bandeau
+        this.setAudioGateVisible(false);
       }
     });
 
@@ -286,10 +302,10 @@ class Game {
     input?.focus();
   }
 
-  async handleAudio(previewUrl) {
+  async handleAudio(previewUrl, audioPosition = 0) {
     if (previewUrl && !audio.isAudioPlaying()) {
       try {
-        const ok = await audio.play(previewUrl);
+        const ok = await audio.play(previewUrl, audioPosition);
 
         // Autoplay bloqué => afficher le bandeau
         if (ok === false) this.setAudioGateVisible(true);

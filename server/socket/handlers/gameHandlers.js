@@ -68,14 +68,28 @@ module.exports = (io, socket) => {
   // Soumettre une reponse
   socket.on(EVENTS.GAME.ANSWER, (answer) => {
     try {
-      const room = RoomService.getRoomBySocketId(socket.id);
-      if (!room || room.status !== 'playing') return;
+      console.log(`[gameHandlers] ANSWER received from socket.id=${socket.id}, answer="${answer}"`);
 
-      if (!answer || typeof answer !== 'string' || answer.trim().length === 0) {
+      const room = RoomService.getRoomBySocketId(socket.id);
+      if (!room) {
+        console.log(`[gameHandlers] ERROR: Room not found for socket.id=${socket.id}`);
+        return;
+      }
+      if (room.status !== 'playing') {
+        console.log(`[gameHandlers] ERROR: Room status is "${room.status}", not "playing"`);
         return;
       }
 
+      console.log(`[gameHandlers] Room found: code=${room.code}, status=${room.status}`);
+
+      if (!answer || typeof answer !== 'string' || answer.trim().length === 0) {
+        console.log(`[gameHandlers] ERROR: Invalid answer`);
+        return;
+      }
+
+      console.log(`[gameHandlers] Calling submitAnswer(${room.code}, ${socket.id}, "${answer.trim()}")`);
       const result = GameService.submitAnswer(room.code, socket.id, answer.trim());
+      console.log(`[gameHandlers] submitAnswer result:`, result);
 
       // Reponse au joueur
       socket.emit(EVENTS.GAME.ANSWER_RESULT, result);

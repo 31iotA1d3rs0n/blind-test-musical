@@ -20,6 +20,8 @@ class GameState {
         totalRounds: 0,
         timeRemaining: 0,
         previewUrl: null,
+        roundStartedAt: null, // Timestamp serveur du debut du round
+        audioPosition: 0, // Position audio en secondes (pour reconnexion)
         myAnswers: { title: false, artist: false },
         roundResult: null,
         countdown: null
@@ -96,6 +98,8 @@ class GameState {
       totalRounds: 0,
       timeRemaining: 0,
       previewUrl: null,
+      roundStartedAt: null,
+      audioPosition: 0,
       myAnswers: { title: false, artist: false },
       roundResult: null,
       countdown: null
@@ -170,6 +174,15 @@ class GameState {
   // Effacer la session
   clearSession() {
     sessionStorage.removeItem('blindTestSession');
+  }
+
+  // Calculer la position audio actuelle basee sur roundStartedAt
+  getAudioPosition() {
+    const roundStartedAt = this.state.game.roundStartedAt;
+    if (!roundStartedAt) return 0;
+
+    const elapsed = (Date.now() - roundStartedAt) / 1000; // En secondes
+    return Math.max(0, elapsed);
   }
 }
 

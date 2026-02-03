@@ -23,11 +23,23 @@ class GameService {
   }
 
   submitAnswer(roomCode, socketId, answer) {
+    console.log(`[GameService] submitAnswer: roomCode=${roomCode}, socketId=${socketId}`);
+
     const game = this.games.get(roomCode);
-    if (!game) throw new Error('GAME_NOT_FOUND');
+    if (!game) {
+      console.log(`[GameService] ERROR: Game not found for roomCode=${roomCode}`);
+      throw new Error('GAME_NOT_FOUND');
+    }
+
+    console.log(`[GameService] Game found, looking for player with socketId=${socketId}`);
+    console.log(`[GameService] Players in game:`, Array.from(game.players.keys()));
 
     const player = game.getPlayer(socketId);
-    if (!player) throw new Error('PLAYER_NOT_FOUND');
+    if (!player) {
+      console.log(`[GameService] ERROR: Player not found with socketId=${socketId}`);
+      throw new Error('PLAYER_NOT_FOUND');
+    }
+    console.log(`[GameService] Player found: id=${player.id}, name=${player.name}`);
 
     const currentTrack = game.getCurrentTrack();
     if (!currentTrack) throw new Error('NO_CURRENT_TRACK');
@@ -223,9 +235,16 @@ class GameService {
 
   // Mettre a jour le socketId d'un joueur apres reconnexion
   updatePlayerSocket(roomCode, playerId, newSocketId) {
+    console.log(`[GameService] updatePlayerSocket called: roomCode=${roomCode}, playerId=${playerId}, newSocketId=${newSocketId}`);
     const game = this.games.get(roomCode);
-    if (!game) return null;
-    return game.updatePlayerSocket(playerId, newSocketId);
+    if (!game) {
+      console.log(`[GameService] ERROR: Game not found for roomCode=${roomCode}`);
+      console.log(`[GameService] Available games:`, Array.from(this.games.keys()));
+      return null;
+    }
+    const result = game.updatePlayerSocket(playerId, newSocketId);
+    console.log(`[GameService] updatePlayerSocket result:`, result ? 'SUCCESS' : 'PLAYER NOT FOUND');
+    return result;
   }
 
   // Obtenir l'etat du jeu pour reconnexion

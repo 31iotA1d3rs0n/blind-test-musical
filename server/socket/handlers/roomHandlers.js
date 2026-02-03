@@ -220,9 +220,16 @@ function handleRejoin(io, socket, data) {
 
     // Si une partie est en cours, mettre a jour le socketId dans Game aussi
     let gameState = null;
+    console.log(`[handleRejoin] room.status = "${room.status}"`);
     if (room.status === 'playing') {
-      GameService.updatePlayerSocket(room.code, playerId, socket.id);
+      console.log(`[handleRejoin] Game in progress, updating player socket in Game`);
+      console.log(`[handleRejoin] Calling GameService.updatePlayerSocket(${room.code}, ${playerId}, ${socket.id})`);
+      const updateResult = GameService.updatePlayerSocket(room.code, playerId, socket.id);
+      console.log(`[handleRejoin] updatePlayerSocket result:`, updateResult ? 'SUCCESS' : 'FAILED');
       gameState = GameService.getStateForReconnection(room.code, socket.id);
+      console.log(`[handleRejoin] gameState:`, gameState);
+    } else {
+      console.log(`[handleRejoin] No game in progress (status=${room.status})`);
     }
 
     // Confirmer au joueur avec l'etat du jeu si en cours
