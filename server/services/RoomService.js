@@ -149,10 +149,19 @@ class RoomService {
       throw new Error('SESSION_EXPIRED');
     }
 
+    // Sauvegarder l'ancien socketId pour verifier si c'etait l'hote
+    const oldSocketId = player.socketId;
+    const wasHost = room.hostId === oldSocketId;
+
     // Reconnexion reussie - mettre a jour le socketId dans la Map
     room.updatePlayerSocket(playerId, newSocketId);
     player.disconnectedAt = null;
     this.socketToRoom.set(newSocketId, code.toUpperCase());
+
+    // Si c'etait l'hote, mettre a jour hostId
+    if (wasHost) {
+      room.hostId = newSocketId;
+    }
 
     return { room, player };
   }
