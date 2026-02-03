@@ -2,7 +2,6 @@ class GameState {
   constructor() {
     this.listeners = new Map();
     this.state = {
-      // Joueur local
       player: {
         id: null,
         socketId: null,
@@ -10,32 +9,27 @@ class GameState {
         avatar: null
       },
 
-      // Room courante
       room: null,
 
-      // Etat du jeu
       game: {
         isPlaying: false,
         currentRound: 0,
         totalRounds: 0,
         timeRemaining: 0,
         previewUrl: null,
-        roundStartedAt: null, // Timestamp serveur du debut du round
-        audioPosition: 0, // Position audio en secondes (pour reconnexion)
+        roundStartedAt: null,
+        audioPosition: 0,
         myAnswers: { title: false, artist: false },
         roundResult: null,
         countdown: null
       },
 
-      // Scoreboard
       scoreboard: [],
 
-      // Chat
       messages: [],
 
-      // UI
       ui: {
-        currentView: 'lobby', // lobby | room | game | results
+        currentView: 'lobby',
         isLoading: false,
         error: null,
         modal: null
@@ -75,7 +69,6 @@ class GameState {
     }
     this.listeners.get(event).push(callback);
 
-    // Retourner une fonction pour se desabonner
     return () => {
       const callbacks = this.listeners.get(event);
       const index = callbacks.indexOf(callback);
@@ -90,7 +83,6 @@ class GameState {
     }
   }
 
-  // Reset pour une nouvelle partie
   resetGame() {
     this.state.game = {
       isPlaying: false,
@@ -108,7 +100,6 @@ class GameState {
     this.emit('change', { path: 'game' });
   }
 
-  // Reset complet (retour au lobby)
   reset() {
     this.state.room = null;
     this.resetGame();
@@ -117,29 +108,24 @@ class GameState {
     this.emit('change', { path: 'all' });
   }
 
-  // Sauvegarder le pseudo
   savePlayerName(name) {
     this.state.player.name = name;
     localStorage.setItem('playerName', name);
   }
 
-  // Ajouter un message au chat
   addMessage(message) {
     this.state.messages.push(message);
-    // Limiter a 100 messages
     if (this.state.messages.length > 100) {
       this.state.messages.shift();
     }
     this.emit('change:messages', { value: this.state.messages });
   }
 
-  // Mettre a jour le scoreboard
   updateScoreboard(scoreboard) {
     this.state.scoreboard = scoreboard;
     this.emit('change:scoreboard', { value: scoreboard });
   }
 
-  // Sauvegarder la session pour reconnexion
   saveSession() {
     const session = {
       roomCode: this.state.room?.code,
@@ -151,7 +137,6 @@ class GameState {
     sessionStorage.setItem('blindTestSession', JSON.stringify(session));
   }
 
-  // Restaurer la session
   getSession() {
     try {
       const session = sessionStorage.getItem('blindTestSession');
@@ -159,7 +144,6 @@ class GameState {
 
       const data = JSON.parse(session);
 
-      // Verifier que la session n'est pas trop vieille (2 minutes)
       if (Date.now() - data.savedAt > 2 * 60 * 1000) {
         this.clearSession();
         return null;
@@ -171,21 +155,18 @@ class GameState {
     }
   }
 
-  // Effacer la session
   clearSession() {
     sessionStorage.removeItem('blindTestSession');
   }
 
-  // Calculer la position audio actuelle basee sur roundStartedAt
   getAudioPosition() {
     const roundStartedAt = this.state.game.roundStartedAt;
     if (!roundStartedAt) return 0;
 
-    const elapsed = (Date.now() - roundStartedAt) / 1000; // En secondes
+    const elapsed = (Date.now() - roundStartedAt) / 1000;
     return Math.max(0, elapsed);
   }
 }
 
-// Singleton
 const gameState = new GameState();
 export default gameState;

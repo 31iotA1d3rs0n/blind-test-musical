@@ -9,8 +9,8 @@ class Room {
     this.language = language;
     this.rapStyle = rapStyle;
     this.isPublic = isPublic;
-    this.players = new Map(); // socketId -> Player
-    this.status = 'waiting'; // waiting | playing | finished
+    this.players = new Map();
+    this.status = 'waiting';
     this.createdAt = Date.now();
   }
 

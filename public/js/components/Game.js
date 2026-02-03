@@ -8,7 +8,7 @@ class Game {
     this.container = container;
     this.chat = null;
     this.unsubscribers = [];
-    this.currentMode = null; // 'countdown' | 'playing' | 'result'
+    this.currentMode = null;
   }
 
   render() {
@@ -16,14 +16,12 @@ class Game {
     const scoreboard = state.get('scoreboard');
     const countdown = game.countdown;
 
-    // Afficher le countdown si actif
     if (countdown !== null && countdown > 0) {
       this.currentMode = 'countdown';
       this.renderCountdown(countdown);
       return;
     }
 
-    // Afficher le resultat du round si disponible
     if (game.roundResult) {
       if (this.currentMode !== 'result') {
         this.currentMode = 'result';
@@ -32,12 +30,10 @@ class Game {
       return;
     }
 
-    // Afficher le jeu normal - premier rendu ou changement de mode
     if (this.currentMode !== 'playing') {
       this.currentMode = 'playing';
       this.renderGame(game, scoreboard);
     } else {
-      // Mise à jour partielle sans toucher au formulaire
       this.updateGameUI(game, scoreboard);
     }
   }
@@ -65,7 +61,7 @@ class Game {
             ${result.albumCover ? `
               <img
                 src="${result.albumCover}"
-                alt="Pochette d’album"
+                alt="Pochette d'album"
                 class="round-result-album"
               >
             ` : `
@@ -102,11 +98,10 @@ class Game {
             <div class="timer ${timerClass}">${game.timeRemaining}s</div>
           </div>
 
-          <!-- Bandeau audio (caché par défaut) -->
           <div id="audio-gate" class="audio-gate hidden">
             <div>
               <strong>🔇 Son bloqué</strong>
-              <div class="muted">Clique sur “Activer le son” pour entendre la musique.</div>
+              <div class="muted">Clique sur "Activer le son" pour entendre la musique.</div>
             </div>
             <button id="enable-audio" type="button" class="btn btn-secondary">🔊 Activer le son</button>
           </div>
@@ -151,13 +146,11 @@ class Game {
     this.attachListeners();
     this.initChat();
 
-    // Calculer la position audio (pour la synchro apres reconnexion)
     const audioPosition = game.audioPosition || state.getAudioPosition();
     this.handleAudio(game.previewUrl, audioPosition);
   }
 
   updateGameUI(game, scoreboard) {
-    // Mettre à jour le timer
     const timerEl = this.container.querySelector('.timer');
     if (timerEl) {
       timerEl.textContent = `${game.timeRemaining}s`;
@@ -166,13 +159,11 @@ class Game {
       else if (game.timeRemaining <= 10) timerEl.classList.add('warning');
     }
 
-    // Mettre à jour le round info
     const roundInfo = this.container.querySelector('.round-info');
     if (roundInfo) {
       roundInfo.textContent = `Round ${game.currentRound}/${game.totalRounds}`;
     }
 
-    // Mettre à jour les badges de reponse
     const titleBadge = this.container.querySelector('.answer-status .status-badge:first-child');
     const artistBadge = this.container.querySelector('.answer-status .status-badge:last-child');
     if (titleBadge) {
@@ -184,13 +175,11 @@ class Game {
       artistBadge.innerHTML = `Artiste ${game.myAnswers.artist ? '&#10003;' : ''}`;
     }
 
-    // Mettre à jour le scoreboard
     const scoreboardEl = this.container.querySelector('.scoreboard');
     if (scoreboardEl) {
       scoreboardEl.outerHTML = this.renderScoreboard(scoreboard);
     }
 
-    // Desactiver l'input si tout est trouve
     const input = this.container.querySelector('#answer-input');
     const submitBtn = this.container.querySelector('.answer-form button');
     const foundBoth = game.myAnswers.title && game.myAnswers.artist;
@@ -202,7 +191,6 @@ class Game {
       submitBtn.disabled = true;
     }
 
-    // Gerer l'audio (calculer position pour synchro)
     const audioPosition = game.audioPosition || state.getAudioPosition();
     this.handleAudio(game.previewUrl, audioPosition);
   }
@@ -269,18 +257,13 @@ class Game {
       }
     });
 
-    // Bouton d'activation audio (important pour Safari / autoplay)
     const enableBtn = this.container.querySelector('#enable-audio');
     enableBtn?.addEventListener('click', async () => {
-      // Tenter le unlock (mais on essaie de jouer quand meme apres)
       await audio.unlock();
 
-      // Relancer l'audio si une manche est en cours
-      // Le clic utilisateur devrait autoriser la lecture meme si unlock a echoue
       const game = state.get('game');
       if (game?.previewUrl) {
         try {
-          // Calculer la position audio actuelle pour synchro
           const audioPosition = game.audioPosition || state.getAudioPosition();
           const played = await audio.play(game.previewUrl, audioPosition);
           if (played === false) {
@@ -293,12 +276,10 @@ class Game {
           this.setAudioGateVisible(true);
         }
       } else {
-        // Pas de musique en cours, cacher le bandeau
         this.setAudioGateVisible(false);
       }
     });
 
-    // Focus sur l'input
     input?.focus();
   }
 
@@ -307,7 +288,6 @@ class Game {
       try {
         const ok = await audio.play(previewUrl, audioPosition);
 
-        // Autoplay bloqué => afficher le bandeau
         if (ok === false) this.setAudioGateVisible(true);
         else this.setAudioGateVisible(false);
       } catch (err) {

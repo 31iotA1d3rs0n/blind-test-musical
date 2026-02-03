@@ -1,97 +1,84 @@
-/**
- * Service Deezer - Alternative à Spotify
- * API publique, pas besoin de credentials !
- * Documentation: https://developers.deezer.com/api
- */
-
 class DeezerService {
   constructor() {
     this.baseUrl = 'https://api.deezer.com';
 
-    // Playlists Deezer par genre (IDs verifies)
     this.genrePlaylists = {
       pop: [
-        '4695117364',   // Best Pop Hits (Taylor Swift, Katy Perry, Ed Sheeran...)
-        '10001088582'   // Best Pop Songs of All Time (Glass Animals, BTS, Bruno Mars...)
+        '4695117364',
+        '10001088582'
       ],
       rock: [
-        '1306931615',   // Rock Essentials (David Bowie, Pink Floyd, AC/DC...)
-        '4034900602'    // Classic Rock HITS (AC/DC, Kinks, Big Brother...)
+        '1306931615',
+        '4034900602'
       ],
       hiphop: [
-        '10067544122',  // Classic Hip-Hop (Eric B. & Rakim, LL Cool J, N.W.A...)
-        '2341704526'    // Old School Hip Hop (Mobb Deep, Wu-Tang, Nas...)
+        '10067544122',
+        '2341704526'
       ],
       electro: [
-        '1495242491',   // Dance Essentials (David Guetta, Hardwell...)
-        '1902101402'    // Electronic Hits (HUGEL, Vintage Culture, Fred again...)
+        '1495242491',
+        '1902101402'
       ],
       french: [
-        '1884320402',   // Chansons Francaises de Legende
-        '700895155',    // Essentiels chanson francaise
-        '1420459465'    // Essentiels variete francaise
+        '1884320402',
+        '700895155',
+        '1420459465'
       ],
       '80s': [
-        '2490400844',   // Essential 80s (Nena, Survivor, Cyndi Lauper...)
-        '11798808421'   // 80s HITS - 100 Greatest (a-ha, Madonna, Rick Astley...)
+        '2490400844',
+        '11798808421'
       ],
       '90s': [
-        '878989033',    // 90s Hits (Nirvana, Oasis, Backstreet Boys...)
-        '11798812881'   // 90s HITS - 100 Greatest (Mark Morrison, Snap!, All Saints...)
+        '878989033',
+        '11798812881'
       ],
       '2000s': [
-        '1977689462',   // 00s Party Hits (Eminem, Linkin Park, Shakira...)
-        '11153531204'   // 00s HITS - 100 Greatest (Kylie Minogue, Gnarls Barkley...)
+        '1977689462',
+        '11153531204'
       ]
     };
 
-    // Charts par defaut
     this.defaultCharts = [
-      'https://api.deezer.com/chart/0/tracks',  // Top mondial
-      'https://api.deezer.com/chart/113/tracks' // Top France
+      'https://api.deezer.com/chart/0/tracks',
+      'https://api.deezer.com/chart/113/tracks'
     ];
 
-    // Playlists par langue (verifiees)
     this.languagePlaylists = {
       french: [
-        '1884320402',   // Chansons Francaises de Legende
-        '700895155',    // Essentiels chanson francaise
-        '1420459465',   // Essentiels variete francaise
-        '1189520191',   // Bleu Blanc Hits
-        '957995855',    // Actu Chanson
-        '1626235655'    // Feel good chanson
+        '1884320402',
+        '700895155',
+        '1420459465',
+        '1189520191',
+        '957995855',
+        '1626235655'
       ],
       english: [
-        '3576908782',   // Billboard Top 100 (2010-2014) - Katy Perry, Usher...
-        '8893297562',   // British Classics - Queen, Beatles, Elton John...
-        '1440322225',   // Billboard Number 1 Hits (2000-2014)
-        '11892916601',  // Billboard 1990s Top Hits
-        '4020143682',   // Billboard Top 40 Hits 1970s
-        '13650203641'   // 2020s Pop Hits
+        '3576908782',
+        '8893297562',
+        '1440322225',
+        '11892916601',
+        '4020143682',
+        '13650203641'
       ],
       spanish: [
-        '789123393',    // Reggaeton Classics (Daddy Yankee, Don Omar...)
-        '925131455',    // Latino Mix 2026
-        '178699142',    // Fuego Latino
-        '1273315391',   // Reggaeton Hits
-        '3279798822',   // Caliente
-        '8952147222'    // Latino annees 2010s
+        '789123393',
+        '925131455',
+        '178699142',
+        '1273315391',
+        '3279798822',
+        '8952147222'
       ],
-      mixed: [] // Utilisera les charts par defaut
+      mixed: []
     };
 
-    // Playlists combinees genre + langue (verifiees)
     this.combinedPlaylists = {
-      // Pop
       'pop_french': ['67175576', '10064137882'],
       'pop_english': ['658490995', '13650203641', '3576908782'],
       'pop_spanish': ['2559434604', '2099286188'],
 
-      // Rock
       'rock_french': ['847814561', '1999438682'],
       'rock_english': ['1306931615', '4034900602'],
 
-      // Hip-Hop (separe moderne/classique)
       'hiphop_french_modern': ['5449454322', '1140276541', '12301876691'],
       'hiphop_french_classic': ['1111143121'],
       'hiphop_french': ['5449454322', '1140276541', '1111143121'],
@@ -100,16 +87,13 @@ class DeezerService {
       'hiphop_english': ['1132744911', '10067544122', '2341704526'],
       'hiphop_spanish': ['925131455', '789123393'],
 
-      // Electro
       'electro_english': ['1495242491', '1902101402'],
 
-      // Decennies
       '80s_english': ['2490400844', '11798808421'],
       '90s_english': ['878989033', '11798812881'],
       '2000s_english': ['1977689462', '11153531204']
     };
 
-    // Termes de recherche pour fallback
     this.searchTerms = {
       'pop_french': 'pop francais hits',
       'rock_french': 'rock francais',
@@ -128,7 +112,7 @@ class DeezerService {
   async getRandomTracks({ count = 10, genre = null, language = 'mixed', rapStyle = 'both' }) {
     const tracks = [];
     const usedIds = new Set();
-    const usedArtists = new Set(); // Eviter les doublons d'artistes
+    const usedArtists = new Set();
     let attempts = 0;
     const maxAttempts = 15;
 
@@ -138,41 +122,32 @@ class DeezerService {
       try {
         let data;
 
-        // Priorite 1: Genre + Langue combines
         if (genre && language && language !== 'mixed') {
           data = await this.fetchCombinedTracks(genre, language, rapStyle);
         }
-        // Priorite 2: Genre seul (mixed)
         else if (genre && this.genrePlaylists[genre]) {
           data = await this.fetchGenreTracks(genre, rapStyle);
         }
-        // Priorite 3: Langue seule
         else if (language && language !== 'mixed' && this.languagePlaylists[language]?.length > 0) {
           const playlists = this.languagePlaylists[language];
           const playlistId = playlists[Math.floor(Math.random() * playlists.length)];
           data = await this.fetchPlaylistTracks(playlistId);
         }
-        // Priorite 4: Charts par defaut
         else {
           data = await this.fetchChartTracks();
         }
 
         if (!data || !data.length) {
-          // Fallback: recherche par genre
           data = await this.searchByGenre(genre || 'pop');
         }
 
-        // Melanger les donnees pour plus de variete
         data = this.shuffleArray(data);
 
-        // Filtrer et ajouter les tracks
         for (const track of data) {
           if (!track.preview || usedIds.has(track.id)) continue;
 
-          // Normaliser le nom de l'artiste pour la comparaison
           const artistKey = track.artist.name.toLowerCase().trim();
 
-          // Eviter les doublons d'artistes
           if (usedArtists.has(artistKey)) continue;
 
           usedIds.add(track.id);
@@ -201,17 +176,13 @@ class DeezerService {
     return this.shuffleArray(tracks).slice(0, count);
   }
 
-  // Recuperer tracks combines genre + langue
   async fetchCombinedTracks(genre, language, rapStyle) {
-    // Construire la cle
     let key = `${genre}_${language}`;
 
-    // Cas special pour hip-hop avec style
     if (genre === 'hiphop' && rapStyle !== 'both') {
       key = `${genre}_${language}_${rapStyle}`;
     }
 
-    // Essayer playlist combinee
     if (this.combinedPlaylists[key]?.length > 0) {
       const playlists = this.combinedPlaylists[key];
       const playlistId = playlists[Math.floor(Math.random() * playlists.length)];
@@ -219,20 +190,16 @@ class DeezerService {
       if (data?.length > 0) return data;
     }
 
-    // Fallback: recherche avec termes combines
     const searchKey = `${genre}_${language}`;
     if (this.searchTerms[searchKey]) {
       const data = await this.searchTracks(this.searchTerms[searchKey]);
       if (data?.length > 0) return data;
     }
 
-    // Fallback final: genre seul
     return await this.fetchGenreTracks(genre, rapStyle);
   }
 
-  // Recuperer tracks par genre (avec gestion rapStyle pour hip-hop)
   async fetchGenreTracks(genre, rapStyle) {
-    // Cas special pour hip-hop
     if (genre === 'hiphop' && rapStyle !== 'both') {
       const styleKey = rapStyle === 'modern' ? 'hiphop_english_modern' : 'hiphop_english_classic';
       if (this.combinedPlaylists[styleKey]?.length > 0) {
@@ -242,7 +209,6 @@ class DeezerService {
       }
     }
 
-    // Genre standard
     if (this.genrePlaylists[genre]) {
       const playlists = this.genrePlaylists[genre];
       const playlistId = playlists[Math.floor(Math.random() * playlists.length)];
@@ -252,7 +218,6 @@ class DeezerService {
     return [];
   }
 
-  // Recherche avec un terme specifique
   async searchTracks(query) {
     try {
       const response = await fetch(`${this.baseUrl}/search?q=${encodeURIComponent(query)}&limit=100`);
@@ -300,7 +265,6 @@ class DeezerService {
 
   async searchByGenre(genre) {
     try {
-      // Mapping des genres vers des termes de recherche
       const searchTerms = {
         pop: 'pop hits',
         rock: 'rock classic',
@@ -331,7 +295,6 @@ class DeezerService {
     return shuffled;
   }
 
-  // Toujours disponible - pas besoin de configuration
   isConfigured() {
     return true;
   }

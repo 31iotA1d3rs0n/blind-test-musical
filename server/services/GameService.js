@@ -3,7 +3,7 @@ const ScoreService = require('./ScoreService');
 
 class GameService {
   constructor() {
-    this.games = new Map(); // roomCode -> Game
+    this.games = new Map();
   }
 
   async startGame(room, tracks) {
@@ -23,28 +23,19 @@ class GameService {
   }
 
   submitAnswer(roomCode, socketId, answer) {
-    console.log(`[GameService] submitAnswer: roomCode=${roomCode}, socketId=${socketId}`);
-
     const game = this.games.get(roomCode);
     if (!game) {
-      console.log(`[GameService] ERROR: Game not found for roomCode=${roomCode}`);
       throw new Error('GAME_NOT_FOUND');
     }
 
-    console.log(`[GameService] Game found, looking for player with socketId=${socketId}`);
-    console.log(`[GameService] Players in game:`, Array.from(game.players.keys()));
-
     const player = game.getPlayer(socketId);
     if (!player) {
-      console.log(`[GameService] ERROR: Player not found with socketId=${socketId}`);
       throw new Error('PLAYER_NOT_FOUND');
     }
-    console.log(`[GameService] Player found: id=${player.id}, name=${player.name}`);
 
     const currentTrack = game.getCurrentTrack();
     if (!currentTrack) throw new Error('NO_CURRENT_TRACK');
 
-    // Verifier si le joueur a deja tout trouve
     if (player.foundTitle && player.foundArtist) {
       return { correct: false, alreadyFound: true };
     }
@@ -52,17 +43,14 @@ class GameService {
     const result = this.checkAnswer(answer, currentTrack, player);
 
     if (result.isCorrect) {
-      // Calculer la position (pour le bonus vitesse)
       const position = game.getAnswerCountForType(result.type);
 
-      // Calculer les points
       const points = ScoreService.calculatePoints({
         answerType: result.type,
         position,
         streak: player.streak
       });
 
-      // Ajouter les points
       game.addScore(socketId, points, result.type);
 
       return {
@@ -84,23 +72,20 @@ class GameService {
     const normalize = (str) => str
       .toLowerCase()
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '') // Enlever les accents
-      .replace(/[^a-z0-9\s]/g, '')     // Garder lettres, chiffres, espaces
-      .replace(/\s+/g, ' ')            // Normaliser les espaces
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9\s]/g, '')
+      .replace(/\s+/g, ' ')
       .trim();
 
     const normalizedAnswer = normalize(answer);
     const normalizedTitle = normalize(track.title);
     const normalizedArtist = normalize(track.artist);
 
-    // Verifier titre (si pas encore trouve)
     const matchesTitle = !player.foundTitle && this.fuzzyMatch(normalizedAnswer, normalizedTitle);
 
-    // Verifier artiste (si pas encore trouve) - verifier tous les artistes
     let matchesArtist = false;
     if (!player.foundArtist) {
       matchesArtist = this.fuzzyMatch(normalizedAnswer, normalizedArtist);
-      // Verifier aussi les autres artistes
       if (!matchesArtist && track.allArtists) {
         for (const artist of track.allArtists) {
           if (this.fuzzyMatch(normalizedAnswer, normalize(artist))) {
@@ -111,7 +96,6 @@ class GameService {
       }
     }
 
-    // Determiner le type de reponse
     if (matchesTitle && matchesArtist) {
       return { isCorrect: true, type: 'both' };
     }
@@ -128,31 +112,23 @@ class GameService {
   fuzzyMatch(input, target) {
     if (!input || !target) return false;
 
-    // Match exact
     if (input === target) return true;
 
-    // L'input contient entierement la cible (ex: "kendji girac" contient "kendji")
     if (target.length >= 3 && input.includes(target)) return true;
 
-    // Verification partielle : l'input doit representer au moins 70% de la cible
-    // ET la cible doit commencer par l'input (pour eviter les matchs au milieu)
     if (input.length >= 3 && target.startsWith(input)) {
       const ratio = input.length / target.length;
       if (ratio >= 0.7) return true;
     }
 
-    // Pour les noms composes (ex: "kendji girac"), verifier chaque partie
     const targetParts = target.split(' ').filter(p => p.length >= 2);
     for (const part of targetParts) {
-      // Match exact sur une partie du nom
       if (input === part) return true;
-      // Ou l'input represente >= 70% d'une partie et commence pareil
       if (input.length >= 3 && part.startsWith(input) && input.length / part.length >= 0.7) {
         return true;
       }
     }
 
-    // Tolerance de distance de Levenshtein (15% d'erreur max pour etre plus strict)
     const maxDistance = Math.max(1, Math.floor(target.length * 0.15));
     const distance = this.levenshteinDistance(input, target);
 
@@ -179,9 +155,9 @@ class GameService {
           matrix[i][j] = matrix[i - 1][j - 1];
         } else {
           matrix[i][j] = Math.min(
-            matrix[i - 1][j - 1] + 1, // substitution
-            matrix[i][j - 1] + 1,     // insertion
-            matrix[i - 1][j] + 1      // deletion
+            matrix[i - 1][j - 1] + 1,
+            matrix[i][j - 1] + 1,
+            matrix[i - 1][j] + 1
           );
         }
       }
@@ -233,21 +209,15 @@ class GameService {
     return game ? game.isFinished() : true;
   }
 
-  // Mettre a jour le socketId d'un joueur apres reconnexion
   updatePlayerSocket(roomCode, playerId, newSocketId) {
-    console.log(`[GameService] updatePlayerSocket called: roomCode=${roomCode}, playerId=${playerId}, newSocketId=${newSocketId}`);
     const game = this.games.get(roomCode);
     if (!game) {
-      console.log(`[GameService] ERROR: Game not found for roomCode=${roomCode}`);
-      console.log(`[GameService] Available games:`, Array.from(this.games.keys()));
       return null;
     }
     const result = game.updatePlayerSocket(playerId, newSocketId);
-    console.log(`[GameService] updatePlayerSocket result:`, result ? 'SUCCESS' : 'PLAYER NOT FOUND');
     return result;
   }
 
-  // Obtenir l'etat du jeu pour reconnexion
   getStateForReconnection(roomCode, socketId) {
     const game = this.games.get(roomCode);
     if (!game) return null;

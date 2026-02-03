@@ -14,25 +14,19 @@ class SocketService {
         this.socket = io(CONFIG.SOCKET_URL);
 
         this.socket.on('connect', () => {
-          console.log('Connected to server');
           this.connected = true;
           state.set('player.socketId', this.socket.id);
           this.setupListeners();
           this.setupVisibilityHandler();
-
-          // Tenter de rejoindre si session existante
           this.tryRejoinFromSession();
-
           resolve();
         });
 
         this.socket.on('connect_error', (error) => {
-          console.error('Connection error:', error);
           reject(error);
         });
 
         this.socket.on('disconnect', () => {
-          console.log('Disconnected from server');
           this.connected = false;
         });
 
@@ -43,8 +37,6 @@ class SocketService {
   }
 
   setupListeners() {
-    // === ROOM EVENTS ===
-
     this.socket.on('room:created', ({ room, player }) => {
       state.update({
         'room': room,
@@ -65,7 +57,6 @@ class SocketService {
       state.saveSession();
     });
 
-    // Reconnexion reussie
     this.socket.on('room:rejoined', ({ room, player, gameState }) => {
       state.update({
         'room': room,
@@ -74,7 +65,6 @@ class SocketService {
         'ui.currentView': room.status === 'playing' ? 'game' : 'room'
       });
 
-      // Si partie en cours, restaurer l'etat du jeu
       if (gameState) {
         state.update({
           'game.isPlaying': true,
@@ -82,7 +72,7 @@ class SocketService {
           'game.totalRounds': gameState.totalRounds,
           'game.previewUrl': gameState.previewUrl,
           'game.roundStartedAt': gameState.roundStartedAt,
-          'game.audioPosition': gameState.audioPosition || 0, // Position audio pour synchro
+          'game.audioPosition': gameState.audioPosition || 0,
           'game.myAnswers': gameState.myAnswers
         });
         state.updateScoreboard(gameState.scoreboard);
@@ -93,7 +83,6 @@ class SocketService {
       this.showToast('Reconnecte!', 'success');
     });
 
-    // Joueur deconnecte temporairement
     this.socket.on('room:player_disconnected', ({ playerId, playerName }) => {
       const room = state.get('room');
       if (room) {
@@ -105,7 +94,6 @@ class SocketService {
       }
     });
 
-    // Joueur reconnecte
     this.socket.on('room:player_reconnected', ({ playerId, playerName }) => {
       const room = state.get('room');
       if (room) {
@@ -149,14 +137,11 @@ class SocketService {
       state.set('ui.error', message);
       this.showToast(message, 'error');
 
-      // Si erreur lors de reconnexion, effacer la session
       if (this.reconnecting) {
         this.reconnecting = false;
         state.clearSession();
       }
     });
-
-    // === GAME EVENTS ===
 
     this.socket.on('game:started', ({ totalRounds }) => {
       state.update({
@@ -175,8 +160,8 @@ class SocketService {
         'game.currentRound': data.roundNumber,
         'game.previewUrl': data.previewUrl,
         'game.timeRemaining': data.duration,
-        'game.roundStartedAt': data.roundStartedAt || Date.now(), // Timestamp du serveur
-        'game.audioPosition': 0, // Reset pour nouveau round
+        'game.roundStartedAt': data.roundStartedAt || Date.now(),
+        'game.audioPosition': 0,
         'game.myAnswers': { title: false, artist: false },
         'game.roundResult': null,
         'game.countdown': null
@@ -221,8 +206,6 @@ class SocketService {
       });
     });
 
-    // === CHAT EVENTS ===
-
     this.socket.on('chat:message', (message) => {
       state.addMessage({ ...message, type: 'user' });
     });
@@ -231,8 +214,6 @@ class SocketService {
       state.addMessage({ ...message, type: 'system', id: Date.now() });
     });
   }
-
-  // === ROOM ACTIONS ===
 
   createRoom(playerName, options = {}) {
     state.savePlayerName(playerName);
@@ -254,8 +235,6 @@ class SocketService {
     this.socket.emit('room:ready', isReady);
   }
 
-  // === GAME ACTIONS ===
-
   startGame() {
     this.socket.emit('game:start');
   }
@@ -266,15 +245,11 @@ class SocketService {
     }
   }
 
-  // === CHAT ACTIONS ===
-
   sendMessage(content) {
     if (content && content.trim()) {
       this.socket.emit('chat:send', content.trim());
     }
   }
-
-  // === HELPERS ===
 
   showToast(message, type = 'info') {
     const container = document.querySelector('.toast-container') || this.createToastContainer();
@@ -297,25 +272,20 @@ class SocketService {
     return container;
   }
 
-  // === RECONNEXION ===
-
   setupVisibilityHandler() {
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
-        console.log('App visible - checking connection...');
         this.handleVisibilityChange();
       }
     });
   }
 
   handleVisibilityChange() {
-    // Si on est deja connecte et dans une room, mettre a jour la session
     if (this.connected && state.get('room')) {
       state.saveSession();
       return;
     }
 
-    // Si deconnecte, tenter reconnexion
     if (!this.connected && !this.reconnecting) {
       this.tryReconnect();
     }
@@ -328,7 +298,6 @@ class SocketService {
     this.reconnecting = true;
     this.showToast('Reconnexion en cours...', 'info');
 
-    // Reconnecter le socket
     if (this.socket && !this.socket.connected) {
       this.socket.connect();
     }
@@ -338,10 +307,8 @@ class SocketService {
     const session = state.getSession();
     if (!session || !session.roomCode || !session.playerId) return;
 
-    // Ne pas rejoindre si on est deja dans la room
     if (state.get('room')?.code === session.roomCode) return;
 
-    console.log('Trying to rejoin room:', session.roomCode);
     this.reconnecting = true;
     this.showToast('Reconnexion a la partie...', 'info');
 
@@ -351,7 +318,6 @@ class SocketService {
       playerName: session.playerName
     });
 
-    // Si pas de reponse apres 5 secondes, abandonner
     setTimeout(() => {
       if (this.reconnecting) {
         this.reconnecting = false;
@@ -368,6 +334,5 @@ class SocketService {
   }
 }
 
-// Singleton
 const socketService = new SocketService();
 export default socketService;

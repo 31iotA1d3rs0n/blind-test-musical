@@ -9,7 +9,7 @@ class Player {
     this.streak = 0;
     this.foundTitle = false;
     this.foundArtist = false;
-    this.disconnectedAt = null; // Timestamp de deconnexion temporaire
+    this.disconnectedAt = null;
   }
 
   generateAvatar() {

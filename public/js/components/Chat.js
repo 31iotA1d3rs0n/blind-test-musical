@@ -33,7 +33,6 @@ class Chat {
     this.attachListeners();
     this.scrollToBottom();
 
-    // S'abonner aux nouveaux messages
     this.unsubscribe = state.on('change:messages', () => {
       this.updateMessages();
     });

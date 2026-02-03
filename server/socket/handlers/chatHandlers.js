@@ -3,7 +3,6 @@ const RoomService = require('../../services/RoomService');
 
 module.exports = (io, socket) => {
 
-  // Envoyer un message
   socket.on(EVENTS.CHAT.SEND, (content) => {
     try {
       const room = RoomService.getRoomBySocketId(socket.id);
@@ -12,12 +11,10 @@ module.exports = (io, socket) => {
       const player = room.getPlayer(socket.id);
       if (!player) return;
 
-      // Valider le message
       if (!content || typeof content !== 'string') return;
-      const message = content.trim().slice(0, 200); // Max 200 caracteres
+      const message = content.trim().slice(0, 200);
       if (message.length === 0) return;
 
-      // Envoyer a tous les joueurs de la room
       io.to(room.code).emit(EVENTS.CHAT.MESSAGE, {
         id: Date.now().toString(),
         playerId: player.id,

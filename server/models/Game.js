@@ -4,13 +4,12 @@ class Game {
     this.tracks = tracks;
     this.timePerRound = timePerRound;
     this.currentRound = 0;
-    this.roundAnswers = []; // Reponses du round en cours { playerId, type, points, timestamp }
+    this.roundAnswers = [];
     this.roundHistory = [];
     this.startedAt = Date.now();
-    this.roundStartedAt = null; // Timestamp de debut du round actuel
+    this.roundStartedAt = null;
     this.currentTimer = null;
 
-    // Copie des joueurs pour le jeu
     this.players = new Map();
     for (const player of players) {
       this.players.set(player.socketId, {
@@ -34,7 +33,6 @@ class Game {
     const track = this.getCurrentTrack();
     if (!track) return null;
 
-    // Marquer le debut du round si pas encore fait
     if (!this.roundStartedAt) {
       this.roundStartedAt = Date.now();
     }
@@ -48,16 +46,13 @@ class Game {
     };
   }
 
-  // Etat complet du jeu pour reconnexion
   getStateForReconnection(socketId) {
     const player = this.players.get(socketId);
     const track = this.getCurrentTrack();
 
-    // Calculer la position audio actuelle (temps ecoule depuis le debut du round)
     let audioPosition = 0;
     if (this.roundStartedAt) {
-      audioPosition = (Date.now() - this.roundStartedAt) / 1000; // En secondes
-      // S'assurer que la position ne depasse pas la duree du round
+      audioPosition = (Date.now() - this.roundStartedAt) / 1000;
       audioPosition = Math.min(audioPosition, this.timePerRound);
     }
 
@@ -65,7 +60,7 @@ class Game {
       currentRound: this.currentRound + 1,
       totalRounds: this.tracks.length,
       previewUrl: track?.previewUrl || null,
-      audioPosition: audioPosition, // Position de l'audio en secondes
+      audioPosition: audioPosition,
       roundStartedAt: this.roundStartedAt,
       scoreboard: this.getScoreboard(),
       myAnswers: player ? {
@@ -87,20 +82,14 @@ class Game {
   }
 
   updatePlayerSocket(playerId, newSocketId) {
-    console.log(`[Game] updatePlayerSocket: looking for playerId=${playerId}`);
-    console.log(`[Game] Current players in game:`, Array.from(this.players.entries()).map(([k, v]) => ({ socketId: k, id: v.id, name: v.name })));
-
     for (const [oldSocketId, player] of this.players) {
       if (player.id === playerId) {
-        console.log(`[Game] Found player! oldSocketId=${oldSocketId}, updating to newSocketId=${newSocketId}`);
         this.players.delete(oldSocketId);
         player.socketId = newSocketId;
         this.players.set(newSocketId, player);
-        console.log(`[Game] Players after update:`, Array.from(this.players.keys()));
         return player;
       }
     }
-    console.log(`[Game] ERROR: Player with id=${playerId} not found in game`);
     return null;
   }
 
@@ -132,21 +121,17 @@ class Game {
 
   getAnswerCountForType(type) {
     if (type === 'both') {
-      // Compter les joueurs qui ont trouve les deux
       return this.roundAnswers.filter(a => a.type === 'both').length;
     }
-    // Pour titre ou artiste, compter aussi ceux qui ont trouve 'both'
     return this.roundAnswers.filter(a => a.type === type || a.type === 'both').length;
   }
 
   nextRound() {
-    // Sauvegarder l'historique du round
     this.roundHistory.push({
       track: this.getCurrentTrack(),
       answers: [...this.roundAnswers]
     });
 
-    // Mettre a jour les streaks
     const playersWhoScored = new Set(this.roundAnswers.map(a => a.socketId));
     for (const [socketId, player] of this.players) {
       if (playersWhoScored.has(socketId)) {
@@ -156,10 +141,9 @@ class Game {
       }
     }
 
-    // Reset pour le prochain round
     this.roundAnswers = [];
     this.currentRound++;
-    this.roundStartedAt = null; // Reset pour le prochain round
+    this.roundStartedAt = null;
 
     for (const player of this.players.values()) {
       player.foundTitle = false;
@@ -187,7 +171,6 @@ class Game {
   getFinalResults() {
     const scoreboard = this.getScoreboard();
 
-    // Statistiques
     let bestStreak = { name: '', streak: 0 };
     for (const player of this.players.values()) {
       if (player.streak > bestStreak.streak) {

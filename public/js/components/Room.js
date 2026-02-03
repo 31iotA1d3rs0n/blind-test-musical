@@ -83,7 +83,6 @@ class Room {
 
     this.attachListeners();
 
-    // Initialiser le chat
     const chatContainer = this.container.querySelector('#chat-container');
     this.chat = new Chat(chatContainer);
     this.chat.render();
@@ -154,7 +153,6 @@ class Room {
   }
 
   attachListeners() {
-    // Copier le code
     const copyBtn = this.container.querySelector('#copy-code');
     copyBtn?.addEventListener('click', () => {
       const code = state.get('room.code');
@@ -163,24 +161,19 @@ class Room {
       });
     });
 
-    // Prêt / Pas prêt
     const readyBtn = this.container.querySelector('#ready-btn');
     readyBtn?.addEventListener('click', () => {
-      // Pré-débloquer l'audio au clic (important pour Safari/mobile)
       audio.unlock();
       const myPlayer = state.get('room.players').find(p => p.id === state.get('player.id'));
       socket.setReady(!myPlayer?.isReady);
     });
 
-    // Lancer la partie
     const startBtn = this.container.querySelector('#start-btn');
     startBtn?.addEventListener('click', () => {
-      // Pré-débloquer l'audio au clic (important pour Safari/mobile)
       audio.unlock();
       socket.startGame();
     });
 
-    // Quitter
     const leaveBtn = this.container.querySelector('#leave-btn');
     leaveBtn?.addEventListener('click', () => {
       if (confirm('Quitter la partie ?')) {

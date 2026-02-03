@@ -58,7 +58,6 @@ class Lobby {
         </div>
       </div>
 
-      <!-- Modal pour les options de creation -->
       <div id="create-modal" class="modal-overlay hidden">
         <div class="modal">
           <div class="modal-header">
@@ -133,25 +132,21 @@ class Lobby {
     const cancelModal = this.container.querySelector('#cancel-modal');
     const createForm = this.container.querySelector('#create-form');
 
-    // Sauvegarder le nom en temps reel
     nameInput.addEventListener('input', (e) => {
       state.savePlayerName(e.target.value.trim());
     });
 
-    // Ouvrir le modal de creation
     createBtn.addEventListener('click', () => {
       if (!this.validateName()) return;
       modal.classList.remove('hidden');
     });
 
-    // Fermer le modal
     closeModal.addEventListener('click', () => modal.classList.add('hidden'));
     cancelModal.addEventListener('click', () => modal.classList.add('hidden'));
     modal.addEventListener('click', (e) => {
       if (e.target === modal) modal.classList.add('hidden');
     });
 
-    // Afficher/masquer l'option style de rap
     const genreSelect = this.container.querySelector('#genre');
     const rapStyleGroup = this.container.querySelector('#rap-style-group');
 
@@ -159,10 +154,8 @@ class Lobby {
       rapStyleGroup.classList.toggle('hidden', e.target.value !== 'hiphop');
     });
 
-    // Créer la room
     createForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      // Pré-débloquer l'audio au clic (important pour Safari/mobile)
       audio.unlock();
 
       const genre = this.container.querySelector('#genre').value || null;
@@ -181,12 +174,10 @@ class Lobby {
       modal.classList.add('hidden');
     });
 
-    // Rejoindre une room
     joinForm.addEventListener('submit', (e) => {
       e.preventDefault();
       if (!this.validateName()) return;
 
-      // Pré-débloquer l'audio au clic (important pour Safari/mobile)
       audio.unlock();
 
       const code = codeInput.value.trim().toUpperCase();
@@ -198,7 +189,6 @@ class Lobby {
       socket.joinRoom(code, state.get('player.name'));
     });
 
-    // Formater le code en majuscules
     codeInput.addEventListener('input', (e) => {
       e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
     });

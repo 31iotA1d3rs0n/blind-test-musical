@@ -15,14 +15,11 @@ class App {
 
   async init() {
     try {
-      // Connexion au serveur
       await socket.connect();
       console.log('Connected to server');
 
-      // Ecouter les changements de vue
       this.unsubscribers.push(
         state.on('change', ({ path }) => {
-          // Re-render si la vue change ou si des donnees importantes changent
           if (path === 'ui.currentView' ||
               path === 'room' ||
               path === 'game' ||
@@ -33,10 +30,8 @@ class App {
         })
       );
 
-      // Premier rendu
       this.render();
 
-      // Gestion de la fermeture de page
       window.addEventListener('beforeunload', () => {
         socket.disconnect();
       });
@@ -50,20 +45,17 @@ class App {
   render() {
     const view = state.get('ui.currentView');
 
-    // Si la vue n'a pas change, juste re-rendre le composant existant
     if (this.currentView === view && this.currentComponent) {
       this.currentComponent.render();
       return;
     }
 
-    // La vue a change - detruire l'ancien composant
     if (this.currentComponent?.destroy) {
       this.currentComponent.destroy();
     }
 
     this.currentView = view;
 
-    // Creer le nouveau composant
     switch (view) {
       case 'room':
         this.currentComponent = new Room(this.container);
@@ -80,7 +72,6 @@ class App {
         break;
     }
 
-    // Rendre le composant
     this.currentComponent.render();
   }
 
@@ -99,7 +90,6 @@ class App {
   }
 }
 
-// Demarrer l'application
 document.addEventListener('DOMContentLoaded', () => {
   const app = new App();
   app.init();

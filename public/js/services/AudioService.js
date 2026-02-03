@@ -5,7 +5,7 @@ class AudioService {
     this.fadeInterval = null;
     this.currentUrl = null;
     this.unlocked = false;
-    this.unlocking = null; // Promise en cours
+    this.unlocking = null;
   }
 
   play(url, startAt = 0) {
@@ -24,10 +24,8 @@ class AudioService {
         reject(e);
       };
 
-      // Si meme URL et deja en lecture, juste synchroniser la position si necessaire
       if (url === this.currentUrl && this.isPlaying && this.audio && !this.audio.paused) {
         if (startAt > 0 && Math.abs(this.audio.currentTime - startAt) > 1) {
-          // Synchroniser si decalage > 1 seconde
           this.audio.currentTime = startAt;
         }
         safeResolve(true);
@@ -43,7 +41,6 @@ class AudioService {
       this.audio.volume = 0;
 
       this.audio.oncanplay = () => {
-        // Definir la position de depart si specifiee
         if (startAt > 0) {
           this.audio.currentTime = startAt;
         }
@@ -82,7 +79,6 @@ class AudioService {
       };
 
       setTimeout(() => {
-        // Ne timeout QUE si on n'a encore rien résolu/rejeté
         if (!settled && !this.isPlaying) {
           safeReject(new Error("Audio load timeout"));
         }
@@ -91,26 +87,21 @@ class AudioService {
   }
 
   async unlock() {
-    // Déjà débloqué
     if (this.unlocked) return true;
 
-    // Unlock en cours, attendre le résultat
     if (this.unlocking) return this.unlocking;
 
     this.unlocking = (async () => {
       try {
-        // Methode 1: Utiliser Web Audio API (plus fiable)
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         if (AudioContext) {
           const ctx = new AudioContext();
-          // Creer un buffer silencieux
           const buffer = ctx.createBuffer(1, 1, 22050);
           const source = ctx.createBufferSource();
           source.buffer = buffer;
           source.connect(ctx.destination);
           source.start(0);
 
-          // Reprendre le contexte si suspendu
           if (ctx.state === 'suspended') {
             await ctx.resume();
           }
@@ -119,7 +110,6 @@ class AudioService {
           return true;
         }
 
-        // Methode 2: Fallback avec element audio vide
         const tempAudio = new Audio();
         tempAudio.volume = 0;
 
@@ -132,13 +122,11 @@ class AudioService {
         this.unlocked = true;
         return true;
       } catch (e) {
-        // AbortError est OK, ca veut dire que le contexte audio est quand meme debloque
         if (e?.name === "AbortError") {
           this.unlocked = true;
           return true;
         }
         console.warn("Audio unlock failed:", e);
-        // Marquer comme debloque quand meme pour permettre une tentative de lecture
         this.unlocked = true;
         return true;
       } finally {
@@ -211,6 +199,5 @@ class AudioService {
   }
 }
 
-// Singleton
 const audioService = new AudioService();
 export default audioService;
