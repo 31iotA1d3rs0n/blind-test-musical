@@ -220,6 +220,20 @@ class GameService {
     const game = this.games.get(roomCode);
     return game ? game.isFinished() : true;
   }
+
+  // Mettre a jour le socketId d'un joueur apres reconnexion
+  updatePlayerSocket(roomCode, playerId, newSocketId) {
+    const game = this.games.get(roomCode);
+    if (!game) return null;
+    return game.updatePlayerSocket(playerId, newSocketId);
+  }
+
+  // Obtenir l'etat du jeu pour reconnexion
+  getStateForReconnection(roomCode, socketId) {
+    const game = this.games.get(roomCode);
+    if (!game) return null;
+    return game.getStateForReconnection(socketId);
+  }
 }
 
 module.exports = new GameService();

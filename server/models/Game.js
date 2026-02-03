@@ -40,8 +40,44 @@ class Game {
     };
   }
 
+  // Etat complet du jeu pour reconnexion
+  getStateForReconnection(socketId) {
+    const player = this.players.get(socketId);
+    const track = this.getCurrentTrack();
+
+    return {
+      currentRound: this.currentRound + 1,
+      totalRounds: this.tracks.length,
+      previewUrl: track?.previewUrl || null,
+      scoreboard: this.getScoreboard(),
+      myAnswers: player ? {
+        title: player.foundTitle,
+        artist: player.foundArtist
+      } : { title: false, artist: false }
+    };
+  }
+
   getPlayer(socketId) {
     return this.players.get(socketId);
+  }
+
+  getPlayerById(playerId) {
+    for (const player of this.players.values()) {
+      if (player.id === playerId) return player;
+    }
+    return null;
+  }
+
+  updatePlayerSocket(playerId, newSocketId) {
+    for (const [oldSocketId, player] of this.players) {
+      if (player.id === playerId) {
+        this.players.delete(oldSocketId);
+        player.socketId = newSocketId;
+        this.players.set(newSocketId, player);
+        return player;
+      }
+    }
+    return null;
   }
 
   addScore(socketId, points, type) {

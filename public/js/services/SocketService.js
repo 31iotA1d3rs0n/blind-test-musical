@@ -66,13 +66,26 @@ class SocketService {
     });
 
     // Reconnexion reussie
-    this.socket.on('room:rejoined', ({ room, player }) => {
+    this.socket.on('room:rejoined', ({ room, player, gameState }) => {
       state.update({
         'room': room,
         'player.id': player.id,
         'player.avatar': player.avatar,
         'ui.currentView': room.status === 'playing' ? 'game' : 'room'
       });
+
+      // Si partie en cours, restaurer l'etat du jeu
+      if (gameState) {
+        state.update({
+          'game.isPlaying': true,
+          'game.currentRound': gameState.currentRound,
+          'game.totalRounds': gameState.totalRounds,
+          'game.previewUrl': gameState.previewUrl,
+          'game.myAnswers': gameState.myAnswers
+        });
+        state.updateScoreboard(gameState.scoreboard);
+      }
+
       state.saveSession();
       this.reconnecting = false;
       this.showToast('Reconnecte!', 'success');

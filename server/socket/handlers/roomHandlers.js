@@ -1,5 +1,6 @@
 const EVENTS = require('../events');
 const RoomService = require('../../services/RoomService');
+const GameService = require('../../services/GameService');
 
 module.exports = (io, socket) => {
 
@@ -217,10 +218,18 @@ function handleRejoin(io, socket, data) {
     // Rejoindre la room Socket.io
     socket.join(room.code);
 
-    // Confirmer au joueur
+    // Si une partie est en cours, mettre a jour le socketId dans Game aussi
+    let gameState = null;
+    if (room.status === 'playing') {
+      GameService.updatePlayerSocket(room.code, playerId, socket.id);
+      gameState = GameService.getStateForReconnection(room.code, socket.id);
+    }
+
+    // Confirmer au joueur avec l'etat du jeu si en cours
     socket.emit(EVENTS.ROOM.REJOINED, {
       room: room.toPublicJSON(),
-      player: player.toPublicJSON()
+      player: player.toPublicJSON(),
+      gameState: gameState
     });
 
     // Notifier les autres
@@ -238,7 +247,7 @@ function handleRejoin(io, socket, data) {
     // Mettre a jour la room
     io.to(room.code).emit(EVENTS.ROOM.UPDATED, room.toPublicJSON());
 
-    console.log(`Player ${player.name} rejoined room ${room.code}`);
+    console.log(`Player ${player.name} rejoined room ${room.code}${gameState ? ' (game in progress)' : ''}`);
 
   } catch (error) {
     console.error('Error rejoining room:', error);
